@@ -352,13 +352,10 @@ public:
 		{
 			auto skySpeed = 10.f;
 
-			for (auto& sky : mSky)
-			{
-				sky.move(skySpeed * dt, 0.f);
+			move(skySpeed * dt, 0.f);
 
-				if (sky.getPosition().x > mSkyTexureWidth)
-					sky.move(-mSkyTexureWidth * 2, 0.f);
-			}
+			if (getPosition().x > mSkyTexureWidth)
+				move(-mSkyTexureWidth, 0.f);
 
 			return;
 		}
@@ -381,6 +378,8 @@ public:
 private:
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 	{
+		states.transform *= getTransform();
+
 		if (mType == Background::Sky)
 		{
 			for (const auto& sky : mSky)
@@ -388,7 +387,6 @@ private:
 		}
 		else
 		{
-			states.transform *= getTransform();
 			target.draw(mSprite, states);
 		}
 	}
