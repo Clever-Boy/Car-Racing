@@ -275,7 +275,7 @@ public:
 
 		// Fog effect
 		mFog.setSize({ width, mPoint1.screen.y - mPoint2.screen.y });
-		mFog.setPosition(0, mPoint1.screen.y);
+		mFog.setPosition(0, mPoint2.screen.y);
 		mFog.setFillColor(sf::Color(0, 81, 8, 255 - static_cast<unsigned char>(fog * 255)));
 	}
 
