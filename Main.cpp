@@ -90,10 +90,10 @@ public:
 
 	void setVertices(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, sf::Color color)
 	{
-		mVertices[0].position = sf::Vector2f(x1, y1);
-		mVertices[1].position = sf::Vector2f(x2, y2);
-		mVertices[2].position = sf::Vector2f(x3, y3);
-		mVertices[3].position = sf::Vector2f(x4, y4);
+		mVertices[0].position = { x1, y1 };
+		mVertices[1].position = { x2, y2 };
+		mVertices[2].position = { x3, y3 };
+		mVertices[3].position = { x4, y4 };
 
 		mVertices[0].color = mVertices[1].color = mVertices[2].color = mVertices[3].color = color;
 	}
@@ -462,7 +462,6 @@ class Road final : public sf::Drawable, public sf::Transformable, private sf::No
 		const float medium = 40.f;
 		const float high = 60.f;
 	} hill;
-
 
 	using SegmentContainer = std::vector<Segment::Ptr>;
 
