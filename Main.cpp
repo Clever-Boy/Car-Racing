@@ -188,30 +188,12 @@ public:
 		mData[Colors::Finish].lanes = {};
 	}
 
-	void setType(Type type)
-	{
-		mType = type;
-	}
+	void setType(Type type) { mType = type;}
 
-	sf::Color getRoad() const
-	{
-		return mData[mType].road;
-	}
-
-	sf::Color getGrass() const
-	{
-		return mData[mType].grass;
-	}
-
-	sf::Color getRumble() const
-	{
-		return mData[mType].rumble;
-	}
-
-	sf::Color getLane() const
-	{
-		return mData[mType].lanes;
-	}
+	sf::Color getRoad() const {	return mData[mType].road;}
+	sf::Color getGrass() const { return mData[mType].grass;}
+	sf::Color getRumble() const	{ return mData[mType].rumble;}
+	sf::Color getLane() const {	return mData[mType].lanes;}
 
 
 private:
@@ -795,7 +777,7 @@ public:
 
 		mPlayer->update(mRoad.getSteer(), mRoad.getUpDown());
 
-		for (auto& i : mBackground)
+		for (const auto& i : mBackground)
 			i->update(dt, mRoad.getCurve(), mRoad.getSpeed());
 	}
 
@@ -803,7 +785,7 @@ public:
 private:
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 	{
-		for (auto& i : mBackground)
+		for (const auto& i : mBackground)
 			target.draw(*i, states);
 
 		target.draw(mRoad, states);
