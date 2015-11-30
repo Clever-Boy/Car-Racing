@@ -320,7 +320,11 @@ public:
 	};
 
 	using Ptr = std::unique_ptr<Background>;
+
+
+private:
 	using SkyContainer = std::array<sf::Sprite, 2>;
+
 
 public:
 	Background(Type type, const sf::Texture& texture)
@@ -478,9 +482,9 @@ public:
 		, mRumbleLength(3u)
 		, mTrackLength(0.f)
 		, mSpeed(0.f)
-		, mSteer()
 		, mUpDown()
 		, mCurve()
+		, mSteer()
 	{
 		// build road
 		addStraight(length.shorty / 2);
@@ -723,9 +727,9 @@ private:
 	float mPosition;
 	float mTrackLength;
 	float mSpeed;
-	int mSteer;
 	float mUpDown;
 	float mCurve;
+	int mSteer;
 };
 
 class World final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
