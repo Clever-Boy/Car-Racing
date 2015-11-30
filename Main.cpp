@@ -140,17 +140,6 @@ struct Point
 
 class Colors
 {
-	struct ColorsData
-	{
-		sf::Color road{};
-		sf::Color grass{};
-		sf::Color rumble{};
-		sf::Color lanes{};
-	};
-
-	using ColorsContainer = std::vector<ColorsData>;
-
-
 public:
 	enum Type
 	{
@@ -160,6 +149,18 @@ public:
 		Finish,
 		TypeCount
 	};
+
+
+private:
+	struct ColorsData
+	{
+		sf::Color road{};
+		sf::Color grass{};
+		sf::Color rumble{};
+		sf::Color lanes{};
+	};
+
+	using ColorsContainer = std::vector<ColorsData>;
 
 
 public:
@@ -190,10 +191,10 @@ public:
 
 	void setType(Type type) { mType = type;}
 
-	sf::Color getRoad() const {	return mData[mType].road;}
-	sf::Color getGrass() const { return mData[mType].grass;}
-	sf::Color getRumble() const	{ return mData[mType].rumble;}
-	sf::Color getLane() const {	return mData[mType].lanes;}
+	sf::Color getRoad() const {	return mData[mType].road; }
+	sf::Color getGrass() const { return mData[mType].grass; }
+	sf::Color getRumble() const	{ return mData[mType].rumble; }
+	sf::Color getLane() const {	return mData[mType].lanes; }
 
 
 private:
