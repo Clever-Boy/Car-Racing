@@ -344,7 +344,6 @@ public:
 		, mSky()
 		, mSkyTexureWidth()
 	{
-		mSprite.setPosition(-rect.width / 2.f, 0.f);
 	}
 
 	void update(float dt, float curve, float moving)
@@ -369,12 +368,12 @@ public:
 		if (mType == Background::Hills)
 		{
 			auto hillSpeed = 10.f;
-			mSprite.move(-hillSpeed * curve * dt, 0.f);
+			move(-hillSpeed * curve * dt, 0.f);
 		}
 		else
 		{
 			auto treeSpeed = 30.f;
-			mSprite.move(-treeSpeed * curve * dt, 0.f);
+			move(-treeSpeed * curve * dt, 0.f);
 		}
 	}
 
@@ -389,6 +388,7 @@ private:
 		}
 		else
 		{
+			states.transform *= getTransform();
 			target.draw(mSprite, states);
 		}
 	}
@@ -412,7 +412,6 @@ public:
 		: mSprite(texture, rect)
 	{
 		centerOrigin(mSprite);
-		mSprite.setPosition(320.f, 430.f);
 		mSprite.scale(2.5f, 2.5f);
 	}
 
@@ -433,6 +432,7 @@ public:
 private:
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 	{
+		states.transform *= getTransform();
 		target.draw(mSprite, states);
 	}
 
@@ -759,6 +759,7 @@ public:
 		// setup sprites
 		sf::IntRect playerRect(1085, 480, 80, 41);
 		mPlayer = std::make_unique<Player>(mPlayerTexture, playerRect);
+		mPlayer->setPosition(320.f, 430.f);
 
 		auto sky = std::make_unique<Background>(Background::Sky, mSkyTexture);
 		mBackground.push_back(std::move(sky));
@@ -766,11 +767,13 @@ public:
 		sf::IntRect hillRect(0, 0, 2000, ScreenHeight);
 		mHillTexture.setRepeated(true);
 		auto hill = std::make_unique<Background>(Background::Hills, mHillTexture, hillRect);
+		hill->setPosition(-hillRect.width / 2.f, 0.f);
 		mBackground.push_back(std::move(hill));
 
 		sf::IntRect treeRect(0, 0, 3000, ScreenHeight);
 		mTreesTexture.setRepeated(true);
 		auto tree = std::make_unique<Background>(Background::Trees, mTreesTexture, treeRect);
+		tree->setPosition(-hillRect.width / 2.f, 0.f);
 		mBackground.push_back(std::move(tree));
 	}
 
