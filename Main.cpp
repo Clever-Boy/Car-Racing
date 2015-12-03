@@ -78,10 +78,10 @@ namespace
 	}
 
 	template <typename U>
-	static auto dist() -> typename std::enable_if_t<std::is_integral<U>::value, std::uniform_int_distribution<U>>;
+	static auto dist() -> typename std::enable_if_t<std::is_integral<U>::value, std::uniform_int_distribution<U>> {}
 
 	template <typename U>
-	static auto dist() -> typename std::enable_if_t<std::is_floating_point<U>::value, std::uniform_real_distribution<U>>;
+	static auto dist() -> typename std::enable_if_t<std::is_floating_point<U>::value, std::uniform_real_distribution<U>> {}
 
 	template<typename U>
 	auto random(U min, U max)
@@ -816,10 +816,8 @@ public:
 
 			const auto& spriteVector = playerSegment.getSprites();
 
-			for (auto n = 0u, size = spriteVector.size(); n < size; ++n)
+			for (const auto& sprite : spriteVector)
 			{
-				const auto& sprite = spriteVector[n];
-
 				if (sprite->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 				{
 					mSpeed = accel;
@@ -897,9 +895,8 @@ private:
 			const auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
 			const auto& spriteVector = segment.getSprites();
 
-			for (auto i = 0u, size = spriteVector.size(); i < size; ++i)
+			for (const auto& sprite : spriteVector)
 			{
-				const auto& sprite = spriteVector[i];
 				auto spriteScale = segment.point1().screen.scale;
 				auto spriteX = segment.point1().screen.x + (spriteScale * sprite->getOffset() * roadWidth * width / 2);
 				auto spriteY = segment.point1().screen.y;
