@@ -328,11 +328,11 @@ public:
 
 	float getOffset() const { return mOffset; }
 
-	const sf::FloatRect& getLocalBounds() const { return mSprite.getLocalBounds(); }
 	sf::FloatRect getBoundingRect() const
 	{
 		return getTransform().transformRect(mSprite.getGlobalBounds());
 	}
+
 	void update(float width, float roadWidth, float scaleXY, float destX, float destY, int offsetX, int offsetY, float clip)
 	{
 		auto destW = (mSprite.getLocalBounds().width * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
