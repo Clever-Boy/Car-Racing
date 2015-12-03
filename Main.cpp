@@ -6,6 +6,7 @@
 #include <cmath>
 #include <random>
 #include <stdexcept>
+#include <cassert>
 #include <iostream>
 
 #ifndef M_PI
@@ -18,12 +19,6 @@
 
 namespace
 {
-	void centerOrigin(sf::Sprite& sprite)
-	{
-		auto bounds = sprite.getLocalBounds();
-		sprite.setOrigin(std::floor(bounds.left + bounds.width / 2.f), std::floor(bounds.top + bounds.height / 2.f));
-	}
-
 	float increase(float start, float increment, float max)
 	{
 		auto result = start + increment;
@@ -81,6 +76,39 @@ namespace
 	{
 		return (static_cast<int>(n) % static_cast<int>(total)) / total;
 	}
+
+	template <typename U>
+	static auto dist() -> typename std::enable_if<std::is_integral<U>::value, std::uniform_int_distribution<U> >::type;
+
+	template <typename U>
+	static auto dist() -> typename std::enable_if<std::is_floating_point<U>::value, std::uniform_real_distribution<U> >::type;
+
+	template<typename U>
+	auto random(U min, U max)
+	{
+		static auto seed = static_cast<unsigned long>(std::time(nullptr));
+		static auto RandomEngine = std::default_random_engine(seed);
+
+		decltype(dist<U>()) uniformDistribution(min, max);
+
+		return uniformDistribution(RandomEngine);
+	}
+
+	template<typename C>
+	auto randomChoice(const C& constainer)
+	{
+		return constainer[random(0u, constainer.size() - 1)];
+	}
+
+	bool overlap(float x1, float w1, float x2, float w2, float percent = 0)
+	{
+		auto half = (percent == 0) ? 1 / 2.f : percent / 2.f;
+		auto min1 = x1 - w1 * half;
+		auto max1 = x1 + w1 * half;
+		auto min2 = x2 - w2 * half;
+		auto max2 = x2 + w2 * half;
+		return !((max1 < min2) || (min1 > max2));
+	}
 }
 
 class Polygon final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
@@ -119,6 +147,7 @@ struct Point
 		float x{};
 		float y{};
 		float w{};
+		float scale{};
 
 	} screen{};
 
@@ -131,10 +160,10 @@ struct Point
 		camera.y = world.y - cameraY;
 		camera.z = world.z - cameraZ;
 
-		auto scale = cameraDepth / camera.z;
-		screen.x = width / 2.f + scale * camera.x  * width / 2.f;
-		screen.y = height / 2.f - scale * camera.y  * height / 2.f;
-		screen.w = scale * roadWidth * width / 2.f;
+		screen.scale = cameraDepth / camera.z;
+		screen.x = width / 2u + screen.scale * camera.x  * width / 2u;
+		screen.y = height / 2u - screen.scale * camera.y  * height / 2u;
+		screen.w = screen.scale * roadWidth * width / 2u;
 	}
 };
 
@@ -171,7 +200,7 @@ public:
 		mData[Colors::Light].road = { 100, 100, 100 };
 		mData[Colors::Light].grass = { 16, 170, 16 };
 		mData[Colors::Light].rumble = { 85, 85 , 85 };
-		mData[Colors::Light].lanes = sf::Color::White;
+		mData[Colors::Light].lanes = { 204, 204, 204 };
 
 		mData[Colors::Dark].road = { 100, 100, 100 };
 		mData[Colors::Dark].grass = { 0, 154, 0 };
@@ -189,17 +218,155 @@ public:
 		mData[Colors::Finish].lanes = {};
 	}
 
-	void setType(Type type) { mType = type;}
+	void setType(Type type) { mType = type; }
 
-	sf::Color getRoad() const {	return mData[mType].road; }
+	sf::Color getRoad() const { return mData[mType].road; }
 	sf::Color getGrass() const { return mData[mType].grass; }
-	sf::Color getRumble() const	{ return mData[mType].rumble; }
-	sf::Color getLane() const {	return mData[mType].lanes; }
+	sf::Color getRumble() const { return mData[mType].rumble; }
+	sf::Color getLane() const { return mData[mType].lanes; }
 
 
 private:
 	Type mType;
 	ColorsContainer mData;
+};
+
+struct SpritesData
+{
+	sf::IntRect PalmTree{ 5,  5,  215, 540 };
+	sf::IntRect BillBoard08{ 230, 5, 385, 265 };
+	sf::IntRect Tree1{ 625, 5, 360, 360 };
+	sf::IntRect DeadTree1{ 5, 555, 135, 332 };
+	sf::IntRect BillBoard09{ 150, 555, 328, 282 };
+	sf::IntRect Boulder3{ 230,  280,  320,  220 };
+	sf::IntRect Column{ 995, 5, 200, 315 };
+	sf::IntRect BillBoard01{ 625, 375, 300,  170 };
+	sf::IntRect BillBoard06{ 488, 555, 298, 190 };
+	sf::IntRect BillBoard05{ 5, 897, 298, 190 };
+	sf::IntRect BillBoard07{ 313, 897, 298,  190 };
+	sf::IntRect Boulder2{ 621,  897,  298,  140 };
+	sf::IntRect Tree2{ 1205,  5,  282,  295 };
+	sf::IntRect BillBoard04{ 1205, 310,  268,  170 };
+	sf::IntRect DeadTree2{ 1205,  490,  150,  260 };
+	sf::IntRect Boulder1{ 1205,  760, 168, 248 };
+	sf::IntRect Bush1{ 5,  1097,  240, 155 };
+	sf::IntRect Cactus{ 929,  897, 235, 118 };
+	sf::IntRect Bush2{ 255, 1097, 232, 152 };
+	sf::IntRect BillBoard03{ 5, 1262, 230, 220 };
+	sf::IntRect BillBoard02{ 245, 1262,215, 220 };
+	sf::IntRect Stump{ 995, 330, 195,  140 };
+	sf::IntRect Semi{ 1365, 490, 122, 144 };
+	sf::IntRect Truck{ 1365,  644,  100, 78 };
+	sf::IntRect Car03{ 1383, 760, 88, 55 };
+	sf::IntRect Car02{ 1383,  825, 80,  59 };
+	sf::IntRect Car04{ 1383,  894,  80,  57 };
+	sf::IntRect Car01{ 1205,  1018, 80, 56 };
+	sf::IntRect PlayerUpHillLeft{ 1383,  961,  80,  45 };
+	sf::IntRect PlayerUpHillStraight{ 1295,  1018,  80, 45 };
+	sf::IntRect PlayerUpHillRight{ 1385, 1018, 80,  45 };
+	sf::IntRect PlayerLeft{ 995,  480,  80, 41 };
+	sf::IntRect PlayerStraight{ 1085, 480, 80,  41 };
+	sf::IntRect PlayerRight{ 995, 531, 80, 41 };
+
+	float Scale = 0.3f * (1 / static_cast<float>(PlayerStraight.width));
+
+	std::vector<sf::IntRect> Plants
+	{
+		Tree1,
+		Tree2,
+		DeadTree1,
+		DeadTree2,
+		PalmTree,
+		Bush1,
+		Bush2,
+		Cactus,
+		Stump,
+		Boulder1,
+		Boulder2,
+		Boulder3
+	};
+
+	std::vector<sf::IntRect> BillBoads
+	{
+		BillBoard01,
+		BillBoard02,
+		BillBoard03,
+		BillBoard04,
+		BillBoard05,
+		BillBoard06,
+		BillBoard07,
+		BillBoard08,
+		BillBoard09
+	};
+
+	std::vector<sf::IntRect> Cars
+	{
+		Car01,
+		Car02,
+		Car03,
+		Car04,
+		Semi,
+		Truck
+	};
+
+}spritesData;
+
+
+class Sprites final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
+{
+public:
+	using Ptr = std::unique_ptr<Sprites>;
+
+
+public:
+	Sprites(const sf::Texture& textures, sf::IntRect rect, float offset)
+		: mSprite(textures, rect)
+		, mIsDrawing(false)
+		, mOffset(offset)
+	{
+	}
+
+	float getOffset() const { return mOffset; }
+
+	const sf::FloatRect& getLocalBounds() const { return mSprite.getLocalBounds(); }
+	sf::FloatRect getBoundingRect() const
+	{
+		return getTransform().transformRect(mSprite.getGlobalBounds());
+	}
+	void update(float width, float roadWidth, float scaleXY, float destX, float destY, int offsetX, int offsetY, float clip)
+	{
+		auto destW = (mSprite.getLocalBounds().width * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
+		auto destH = (mSprite.getLocalBounds().height * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
+
+		destX += destW * offsetX;
+		destY += destH * offsetY;
+
+		auto clipH = clip != 0.f ? std::max(0.f, destY + destH - clip) : 0.f;
+
+		if (clipH >= destH) return;
+
+		mIsDrawing = true;
+		setPosition(destX, destY);
+		setScale(destW / mSprite.getLocalBounds().width, (destH - clipH) / mSprite.getLocalBounds().height);
+	}
+
+
+private:
+	void draw(sf::RenderTarget& target, sf::RenderStates states) const override
+	{
+		if (!mIsDrawing) return;
+
+		states.transform *= getTransform();
+		target.draw(mSprite, states);
+
+		mIsDrawing = false;
+	}
+
+
+private:
+	sf::Sprite mSprite;
+	mutable bool mIsDrawing;
+	float  mOffset;
 };
 
 class Segment final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
@@ -208,7 +375,13 @@ public:
 	using Ptr = std::unique_ptr<Segment>;
 
 
+private:
+	using SpritesContainer = std::vector<Sprites::Ptr>;
+
+
 public:
+	Segment(const sf::Texture& textures) : mTextures(textures) {}
+
 	void setCurve(float i) { mCurve = i; }
 	float getCurve() const { return mCurve; }
 
@@ -217,10 +390,21 @@ public:
 	const Point&  point1() const { return mPoint1; }
 	const Point&  point2() const { return mPoint2; }
 
-	void setSegmentColors(Colors::Type c) { mColors.setType(c); }
+	void setSegmentColors(Colors::Type color) { mColors.setType(color); }
 
-	void setIndex(std::size_t i) { mIndex = i; }
+	void setIndex(std::size_t index) { mIndex = index; }
 	std::size_t getIndex() const { return mIndex; }
+
+	void setClip(float clip) { mClip = clip; }
+	const float getClip() const { return mClip; }
+
+	const SpritesContainer& getSprites() const { return mSprites; };
+
+	void addSprite(sf::IntRect spriteRect, float offset)
+	{
+		auto sprite = std::make_unique<Sprites>(mTextures, spriteRect, offset);
+		mSprites.push_back(std::move(sprite));
+	}
 
 	void setGrounds(float width, float fog)
 	{
@@ -235,18 +419,21 @@ public:
 		auto rumbleWidth1 = rumbleWidth(mPoint1.screen.w, lanes);
 		auto rumbleWidth2 = rumbleWidth(mPoint2.screen.w, lanes);
 
-		mRumbleSide1.setVertices(mPoint1.screen.x - mPoint1.screen.w - rumbleWidth1, mPoint1.screen.y,
+		mRumbleSide1.setVertices(
+			mPoint1.screen.x - mPoint1.screen.w - rumbleWidth1, mPoint1.screen.y,
 			mPoint1.screen.x - mPoint1.screen.w, mPoint1.screen.y,
 			mPoint2.screen.x - mPoint2.screen.w, mPoint2.screen.y,
 			mPoint2.screen.x - mPoint2.screen.w - rumbleWidth2, mPoint2.screen.y, mColors.getRumble());
 
-		mRumbleSide2.setVertices(mPoint1.screen.x + mPoint1.screen.w + rumbleWidth1, mPoint1.screen.y,
+		mRumbleSide2.setVertices(
+			mPoint1.screen.x + mPoint1.screen.w + rumbleWidth1, mPoint1.screen.y,
 			mPoint1.screen.x + mPoint1.screen.w, mPoint1.screen.y,
 			mPoint2.screen.x + mPoint2.screen.w, mPoint2.screen.y,
 			mPoint2.screen.x + mPoint2.screen.w + rumbleWidth2, mPoint2.screen.y, mColors.getRumble());
 
 		// Main Road
-		mMainRoad.setVertices(mPoint1.screen.x - mPoint1.screen.w, mPoint1.screen.y,
+		mMainRoad.setVertices(
+			mPoint1.screen.x - mPoint1.screen.w, mPoint1.screen.y,
 			mPoint1.screen.x + mPoint1.screen.w, mPoint1.screen.y,
 			mPoint2.screen.x + mPoint2.screen.w, mPoint2.screen.y,
 			mPoint2.screen.x - mPoint2.screen.w, mPoint2.screen.y, mColors.getRoad());
@@ -262,12 +449,14 @@ public:
 		for (auto lane = 1u; lane < lanes; lanex1 += lanew1 + 1, lanex2 += lanew2 + 1, lane++)
 		{
 			if (lane == 1)
-				mLanes1.setVertices(lanex1 - laneMarkerWidth1 / 2, mPoint1.screen.y,
+				mLanes1.setVertices(
+					lanex1 - laneMarkerWidth1 / 2, mPoint1.screen.y,
 					lanex1 + laneMarkerWidth1 / 2, mPoint1.screen.y,
 					lanex2 + laneMarkerWidth2 / 2, mPoint2.screen.y,
 					lanex2 - laneMarkerWidth2 / 2, mPoint2.screen.y, mColors.getLane());
 			else
-				mLanes2.setVertices(lanex1 - laneMarkerWidth1 / 2, mPoint1.screen.y,
+				mLanes2.setVertices(
+					lanex1 - laneMarkerWidth1 / 2, mPoint1.screen.y,
 					lanex1 + laneMarkerWidth1 / 2, mPoint1.screen.y,
 					lanex2 + laneMarkerWidth2 / 2, mPoint2.screen.y,
 					lanex2 - laneMarkerWidth2 / 2, mPoint2.screen.y, mColors.getLane());
@@ -305,9 +494,12 @@ private:
 	Polygon mMainRoad{};
 	sf::RectangleShape mLandscape{};
 	sf::RectangleShape mFog{};
-	Colors mColors{};
+	const sf::Texture& mTextures;
+	SpritesContainer mSprites{};
 	std::size_t mIndex{};
+	Colors mColors{};
 	float mCurve{};
+	float mClip{};
 };
 
 class Background final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
@@ -410,21 +602,29 @@ public:
 	Player(const sf::Texture& texture, sf::IntRect rect)
 		: mSprite(texture, rect)
 	{
-		centerOrigin(mSprite);
-		mSprite.scale(2.5f, 2.5f);
 	}
 
-	void update(int steer, float updown)
+	void update(float width, float roadWidth, float scaleXY, float destX, float destY, int steer, float updown)
 	{
 		sf::IntRect spriteRect;
+
 		if (steer < 0)
-			spriteRect = (updown > 0) ? sf::IntRect{ 1383,  961,  80, 45 } : sf::IntRect{ 995, 480, 80, 41 };
+			spriteRect = (updown > 0) ? spritesData.PlayerUpHillLeft : spritesData.PlayerLeft;
 		else if (steer > 0)
-			spriteRect = (updown > 0) ? sf::IntRect{ 1385, 1018, 80, 45 } : sf::IntRect{ 995, 531, 80, 41 };
+			spriteRect = (updown > 0) ? spritesData.PlayerUpHillRight : spritesData.PlayerRight;
 		else
-			spriteRect = (updown > 0) ? sf::IntRect{ 1295, 1018, 80, 45 } : sf::IntRect{ 1085, 480,  80, 41 };
+			spriteRect = (updown > 0) ? spritesData.PlayerUpHillStraight : spritesData.PlayerStraight;
 
 		mSprite.setTextureRect(spriteRect);
+
+		auto destW = (mSprite.getLocalBounds().width * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
+		auto destH = (mSprite.getLocalBounds().height * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
+
+		destX += destW * -0.5f;
+		destY += destH * -1;
+
+		setPosition(destX, destY);
+		setScale(destW / mSprite.getLocalBounds().width, destH / mSprite.getLocalBounds().height);
 	}
 
 
@@ -432,6 +632,7 @@ private:
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 	{
 		states.transform *= getTransform();
+
 		target.draw(mSprite, states);
 	}
 
@@ -442,6 +643,11 @@ private:
 
 class Road final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
 {
+public:
+	using Ptr = std::unique_ptr<Road>;
+
+
+private:
 	struct Length
 	{
 		const float none = 0.f;
@@ -470,35 +676,94 @@ class Road final : public sf::Drawable, public sf::Transformable, private sf::No
 
 
 public:
-	Road()
+	Road(const sf::Texture& texture)
 		: mSegments()
+		, mPlayer(nullptr)
 		, mSegmentLength(200.f)
 		, mPlayerX(0.f)
-		, mCameraDepth(1 / std::atan((100.f / 2.f)))
+		, mCameraDepth(1 / std::tan((100.f / 2.f) * static_cast<float>(M_PI / 180.f)))
 		, mCameraHeight(1000.f)
 		, mPlayerZ((mCameraHeight * mCameraDepth))
 		, mPosition(0.f)
 		, mRumbleLength(3u)
 		, mTrackLength(0.f)
 		, mSpeed(0.f)
-		, mUpDown()
 		, mCurve()
 		, mSteer()
+		, mTextures(texture)
+		, mMaxSpeed(mSegmentLength / (1 / 60.f))
 	{
+		mPlayer = std::make_unique<Player>(mTextures, spritesData.PlayerStraight);
+
 		// build road
-		addStraight(length.shorty / 2);
-		addHill(length.shorty, hill.low);
+		addStraight(length.shorty);
 		addLowRollingHills();
+		addSCurves();
 		addCurve(length.medium, curve.medium, hill.low);
+		addBumps();
 		addLowRollingHills();
-		addCurve(length.longy, curve.medium, hill.medium);
+		addCurve(length.longy * 2, curve.medium, hill.medium);
 		addStraight();
-		addCurve(length.longy, -curve.medium, hill.medium);
+		addHill(length.medium, hill.high);
+		addSCurves();
+		addCurve(length.longy, -curve.medium, hill.none);
 		addHill(length.longy, hill.high);
 		addCurve(length.longy, curve.medium, -hill.low);
-		addHill(length.longy, -curve.medium);
+		addBumps();
+		addHill(length.longy, -hill.medium);
 		addStraight();
+		addSCurves();
 		addDownhillToEnd();
+
+		// add side sprites
+		addSprite(20u, spritesData.BillBoard07, -1.f);
+		addSprite(40u, spritesData.BillBoard06, -1.f);
+		addSprite(60u, spritesData.BillBoard08, -1.f);
+		addSprite(80u, spritesData.BillBoard09, -1.f);
+		addSprite(100u, spritesData.BillBoard01, -1.f);
+		addSprite(120u, spritesData.BillBoard02, -1.f);
+		addSprite(140u, spritesData.BillBoard03, -1.f);
+		addSprite(160u, spritesData.BillBoard04, -1.f);
+		addSprite(180u, spritesData.BillBoard05, -1.f);
+		addSprite(240u, spritesData.BillBoard07, -1.2f);
+		addSprite(240u, spritesData.BillBoard06, 1.2f);
+
+		addSprite(mSegments.size() - 25, spritesData.BillBoard07, -1.2f);
+		addSprite(mSegments.size() - 25, spritesData.BillBoard06, 1.2f);
+
+		for (auto n = 10u; n < 240; n += 4 + n / 100u)
+		{
+			addSprite(n, spritesData.PalmTree, random(0.5f, 0.9f));
+			addSprite(n, spritesData.PalmTree, random(1.5f, 5.5f));
+		}
+
+		for (auto n = 250u; n < 1000; n += 5)
+		{
+			addSprite(n, spritesData.Column, 1.1f);
+			addSprite(n + random(0, 5), spritesData.Tree1, -random(1.f, 5.5f));
+			addSprite(n + random(0, 5), spritesData.Tree2, -random(1.f, 5.5f));
+		}
+
+		std::vector<float> vec
+		{
+			1.f,
+			-1.f
+		};
+
+		for (auto n = 200u; n < mSegments.size(); n += 3)
+		{
+			addSprite(n, randomChoice(spritesData.Plants), randomChoice(vec) * random(1.f, 5.5f));
+		}
+
+		for (auto n = 1000u; n < (mSegments.size() - 50); n += 100)
+		{
+			auto side = randomChoice(vec);
+			addSprite(n + random(0, 50), randomChoice(spritesData.BillBoads), -side);
+			for (auto i = 0u; i < 20; i++)
+			{
+				addSprite(n + random(0, 50), randomChoice(spritesData.Plants), side * random(1.f, 5.5f));
+			}
+		}
 
 		// setup start and finish of road
 		mSegments[mSegments[static_cast<std::size_t>(std::floor(mPlayerZ / mSegmentLength)) % mSegments.size()]->getIndex() + 2]->setSegmentColors(Colors::Start);
@@ -514,19 +779,22 @@ public:
 
 	void update(float dt)
 	{
-		auto maxSpeed = mSegmentLength / dt;
-		auto accel = maxSpeed / 5.f;
-		auto breaking = -maxSpeed;
+		auto accel = mMaxSpeed / 5.f;
+		auto breaking = -mMaxSpeed;
 		auto decel = -accel;
-		auto offRoadDecel = -maxSpeed / 2.f;
-		auto offRoadLimit = maxSpeed / 4.f;
+		auto offRoadDecel = -mMaxSpeed / 2.f;
+		auto offRoadLimit = mMaxSpeed / 4.f;
 		auto centrifugal = 0.3f;
 		bool keyLeft = false;
 		bool keyRight = false;
 
+		const auto& baseSegment = *mSegments[static_cast<std::size_t>(std::floor(mPosition / mSegmentLength)) % mSegments.size()];
 		const auto& playerSegment = *mSegments[static_cast<std::size_t>(std::floor((mPosition + mPlayerZ) / mSegmentLength)) % mSegments.size()];
-		auto speedPercent = mSpeed / maxSpeed;
+		auto playerW = spritesData.PlayerStraight.width * spritesData.Scale;
+		auto speedPercent = mSpeed / mMaxSpeed;
 		auto dx = dt * speedPercent;
+
+
 		mCurve = playerSegment.getCurve();
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -551,19 +819,34 @@ public:
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
 			mSpeed += breaking * dt;
 
-		if (((mPlayerX < -1.f) || (mPlayerX > 1.f)) && (mSpeed > offRoadLimit))
-			mSpeed += offRoadDecel * dt;
+		if ((mPlayerX < -1.f) || (mPlayerX > 1.f))
+		{
+			if (mSpeed > offRoadLimit)
+				mSpeed += offRoadDecel * dt;
+
+			const auto& spriteVector = playerSegment.getSprites();
+
+			for (auto n = 0u, size = spriteVector.size(); n < size; ++n)
+			{
+				const auto& sprite = spriteVector[n];
+				auto spriteW = sprite->getBoundingRect().width * spritesData.Scale;
+				if (overlap(mPlayerX, playerW, sprite->getOffset() + spriteW / 2.f * (sprite->getOffset() > 0 ? 1 : -1), spriteW))
+				{
+					mSpeed = mMaxSpeed / 5.f;
+					mPosition = increase(playerSegment.point1().world.z, -mPlayerZ, mTrackLength);
+					break;
+				}
+			}
+		}
 
 		mPlayerX = limit(mPlayerX, -2.f, 2.f);
-		mSpeed = limit(mSpeed, 0, maxSpeed);
+		mSpeed = limit(mSpeed, 0, mMaxSpeed);
 
 		mPosition = increase(mPosition, dt * mSpeed, mTrackLength);
 		mSteer = (keyLeft ? -1 : keyRight ? 1 : 0);
-		mUpDown = playerSegment.point2().world.y - playerSegment.point1().world.y;
 	}
 
 	int getSteer() const { return mSteer; }
-	float getUpDown() const { return mUpDown; }
 	float getCurve() const { return mCurve; }
 	float getSpeed() const { return mSpeed; }
 
@@ -591,6 +874,7 @@ private:
 		for (auto n = 0u; n < drawDistance; ++n)
 		{
 			auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
+			segment.setClip(maxy);
 
 			bool looped = segment.getIndex() < baseSegment.getIndex();
 			auto fog = exponentialFog(n / static_cast<float>(drawDistance), fogDensity);
@@ -611,11 +895,48 @@ private:
 			if ((point1.camera.z <= mCameraDepth) || (point2.screen.y >= maxy || point2.screen.y >= point1.screen.y))
 				continue;
 
-			segment.setGrounds(width, fog);
+			segment.setGrounds(roadWidth, fog);
 
 			target.draw(segment, states);
 
 			maxy = point2.screen.y;
+		}
+
+		// render roadside sprites
+		for (auto n = (drawDistance - 1); n > 0u; --n)
+		{
+			const auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
+			const auto& spriteVector = segment.getSprites();
+
+			for (auto i = 0u, size = spriteVector.size(); i < size; ++i)
+			{
+				const auto& sprite = spriteVector[i];
+				auto spriteScale = segment.point1().screen.scale;
+				auto spriteX = segment.point1().screen.x + (spriteScale * sprite->getOffset() * roadWidth * width / 2);
+				auto spriteY = segment.point1().screen.y;
+
+				sprite->update(width, roadWidth,
+					spriteScale,
+					spriteX,
+					spriteY,
+					(sprite->getOffset() < 0 ? -1 : 0), -1,
+					segment.getClip());
+
+				target.draw(*sprite, states);
+			}
+
+			// player
+			if (segment.getIndex() == playerSegment.getIndex())
+			{
+				mPlayer->update(width, roadWidth,
+					mCameraDepth / mPlayerZ,
+					width / 2,
+					(height / 2) - (mCameraDepth / mPlayerZ * interpolate(playerSegment.point1().camera.y, playerSegment.point2().camera.y, playerPercent) * height / 2),
+					mSteer,
+					playerSegment.point2().world.y - playerSegment.point1().world.y);
+
+				target.draw(*mPlayer, states);
+			}
 		}
 	}
 
@@ -623,7 +944,7 @@ private:
 	{
 		auto n = mSegments.size();
 
-		auto segment = std::make_unique<Segment>();
+		auto segment = std::make_unique<Segment>(mTextures);
 
 		segment->setIndex(n);
 		segment->setCurve(curve);
@@ -640,6 +961,11 @@ private:
 			segment->setSegmentColors(Colors::Dark);
 
 		mSegments.push_back(std::move(segment));
+	}
+
+	void addSprite(std::size_t n, sf::IntRect sprite, float offset)
+	{
+		mSegments[n]->addSprite(sprite, offset);
 	}
 
 	void addRoad(float enter, float hold, float leave, float curve, float y)
@@ -664,7 +990,7 @@ private:
 		addRoad(num, num, num, 0, 0);
 	}
 
-	void  addHill(float n = 0, float h = 0)
+	void addHill(float n = 0, float h = 0)
 	{
 		auto num = (n == 0) ? length.medium : n;
 		auto height = (h == 0) ? hill.medium : h;
@@ -672,7 +998,7 @@ private:
 		addRoad(num, num, num, 0, height);
 	}
 
-	void  addCurve(float n = 0, float c = 0, float h = 0)
+	void addCurve(float n = 0, float c = 0, float h = 0)
 	{
 		auto num = (n == 0) ? length.medium : n;
 		auto curves = (c == 0) ? curve.medium : c;
@@ -709,6 +1035,18 @@ private:
 		addRoad(num, num, num, 0, 0);
 	}
 
+	void addBumps()
+	{
+		addRoad(10, 10, 10, 0, 5);
+		addRoad(10, 10, 10, 0, -2);
+		addRoad(10, 10, 10, 0, -5);
+		addRoad(10, 10, 10, 0, 8);
+		addRoad(10, 10, 10, 0, 5);
+		addRoad(10, 10, 10, 0, -7);
+		addRoad(10, 10, 10, 0, 5);
+		addRoad(10, 10, 10, 0, -2);
+	}
+
 	float lastY()
 	{
 		return (mSegments.size() == 0) ? 0 : mSegments[mSegments.size() - 1]->point2().world.y;
@@ -716,19 +1054,22 @@ private:
 
 
 private:
+	const sf::Texture& mTextures;
 	SegmentContainer mSegments;
 	std::size_t mRumbleLength;
+	Player::Ptr mPlayer;
 	float mSegmentLength;
 	float mPlayerX;
 	float mCameraDepth;
 	float mCameraHeight;
 	float mPlayerZ;
 	float mPosition;
+	float mMaxSpeed;
 	float mTrackLength;
 	float mSpeed;
-	float mUpDown;
 	float mCurve;
 	int mSteer;
+
 };
 
 class World final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
@@ -738,16 +1079,15 @@ class World final : public sf::Drawable, public sf::Transformable, private sf::N
 
 public:
 	World(std::size_t ScreenHeight)
-		: mPlayer(nullptr)
+		: mRoad(nullptr)
 		, mBackground()
-		, mPlayerTexture()
+		, mTextures()
 		, mHillTexture()
 		, mSkyTexture()
 		, mTreesTexture()
-		, mRoad()
 	{
 		// load resources
-		if (!mPlayerTexture.loadFromFile("Media/sprites.png")
+		if (!mTextures.loadFromFile("Media/sprites.png")
 			|| !mHillTexture.loadFromFile("Media/hills.png")
 			|| !mSkyTexture.loadFromFile("Media/sky.png")
 			|| !mTreesTexture.loadFromFile("Media/trees.png"))
@@ -756,9 +1096,7 @@ public:
 		}
 
 		// setup sprites
-		sf::IntRect playerRect(1085, 480, 80, 41);
-		mPlayer = std::make_unique<Player>(mPlayerTexture, playerRect);
-		mPlayer->setPosition(320.f, 430.f);
+		mRoad = std::make_unique<Road>(mTextures);
 
 		auto sky = std::make_unique<Background>(Background::Sky, mSkyTexture);
 		mBackground.push_back(std::move(sky));
@@ -778,36 +1116,31 @@ public:
 
 	void update(float dt)
 	{
-		mRoad.update(dt);
+		mRoad->update(dt);
 
-		mPlayer->update(mRoad.getSteer(), mRoad.getUpDown());
-
-		for (const auto& i : mBackground)
-			i->update(dt, mRoad.getCurve(), mRoad.getSpeed());
+		for (const auto& object : mBackground)
+			object->update(dt, mRoad->getCurve(), mRoad->getSpeed());
 	}
 
 
 private:
 	void draw(sf::RenderTarget& target, sf::RenderStates states) const override
 	{
-		for (const auto& i : mBackground)
-			target.draw(*i, states);
+		for (const auto& object : mBackground)
+			target.draw(*object, states);
 
-		target.draw(mRoad, states);
-		target.draw(*mPlayer, states);
+		target.draw(*mRoad, states);
 	}
 
 
 private:
-	Player::Ptr mPlayer;
-	sf::Texture mPlayerTexture;
+	Road::Ptr mRoad;
+	sf::Texture mTextures;
 
 	BackgroundContainer mBackground;
 	sf::Texture mSkyTexture;
 	sf::Texture mHillTexture;
 	sf::Texture mTreesTexture;
-
-	Road mRoad;
 };
 
 class Game
