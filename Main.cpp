@@ -846,7 +846,6 @@ public:
 		mSteer = (keyLeft ? -1 : keyRight ? 1 : 0);
 	}
 
-	int getSteer() const { return mSteer; }
 	float getCurve() const { return mCurve; }
 	float getSpeed() const { return mSpeed; }
 
