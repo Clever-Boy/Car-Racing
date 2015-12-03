@@ -814,9 +814,7 @@ public:
 			if (mSpeed > offRoadLimit)
 				mSpeed += offRoadDecel * dt;
 
-			const auto& spriteVector = playerSegment.getSprites();
-
-			for (const auto& sprite : spriteVector)
+			for (const auto& sprite : playerSegment.getSprites())
 			{
 				if (sprite->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 				{
@@ -893,9 +891,8 @@ private:
 		for (auto n = (drawDistance - 1); n > 0u; --n)
 		{
 			const auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
-			const auto& spriteVector = segment.getSprites();
 
-			for (const auto& sprite : spriteVector)
+			for (const auto& sprite : segment.getSprites())
 			{
 				auto spriteScale = segment.point1().screen.scale;
 				auto spriteX = segment.point1().screen.x + (spriteScale * sprite->getOffset() * roadWidth * width / 2);
