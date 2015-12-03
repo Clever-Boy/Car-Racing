@@ -822,7 +822,7 @@ public:
 
 				if (sprite->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 				{
-					mSpeed = mMaxSpeed / 5.f;
+					mSpeed = accel;
 					mPosition = increase(playerSegment.point1().world.z, -mPlayerZ, mTrackLength);
 					break;
 				}
