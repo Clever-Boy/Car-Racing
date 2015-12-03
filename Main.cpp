@@ -733,7 +733,7 @@ public:
 
 		for (auto n = 10u; n < 240; n += 4 + n / 100u)
 		{
-			addSprite(n, spritesData.PalmTree, random(0.5f, 0.9f));
+			addSprite(n, spritesData.PalmTree, random(0.6f, 0.9f));
 			addSprite(n, spritesData.PalmTree, random(1.5f, 5.5f));
 		}
 
@@ -744,11 +744,7 @@ public:
 			addSprite(n + random(0, 5), spritesData.Tree2, -random(1.f, 5.5f));
 		}
 
-		std::vector<float> vec
-		{
-			1.f,
-			-1.f
-		};
+		std::vector<float> vec{	1.f, -1.f };
 
 		for (auto n = 200u; n < mSegments.size(); n += 3)
 		{
