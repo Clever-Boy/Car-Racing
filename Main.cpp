@@ -99,16 +99,6 @@ namespace
 	{
 		return constainer[random(0u, constainer.size() - 1)];
 	}
-
-	bool overlap(float x1, float w1, float x2, float w2, float percent = 0)
-	{
-		auto half = (percent == 0) ? 1 / 2.f : percent / 2.f;
-		auto min1 = x1 - w1 * half;
-		auto max1 = x1 + w1 * half;
-		auto min2 = x2 - w2 * half;
-		auto max2 = x2 + w2 * half;
-		return !((max1 < min2) || (min1 > max2));
-	}
 }
 
 class Polygon final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
@@ -604,6 +594,11 @@ public:
 	{
 	}
 
+	sf::FloatRect getBoundingRect() const
+	{
+		return getTransform().transformRect(mSprite.getGlobalBounds());
+	}
+
 	void update(float width, float roadWidth, float scaleXY, float destX, float destY, int steer, float updown)
 	{
 		sf::IntRect spriteRect;
@@ -786,7 +781,6 @@ public:
 
 		const auto& baseSegment = *mSegments[static_cast<std::size_t>(std::floor(mPosition / mSegmentLength)) % mSegments.size()];
 		const auto& playerSegment = *mSegments[static_cast<std::size_t>(std::floor((mPosition + mPlayerZ) / mSegmentLength)) % mSegments.size()];
-		auto playerW = spritesData.PlayerStraight.width * spritesData.Scale;
 		auto speedPercent = mSpeed / mMaxSpeed;
 		auto dx = dt * speedPercent;
 
@@ -825,8 +819,8 @@ public:
 			for (auto n = 0u, size = spriteVector.size(); n < size; ++n)
 			{
 				const auto& sprite = spriteVector[n];
-				auto spriteW = sprite->getBoundingRect().width * spritesData.Scale;
-				if (overlap(mPlayerX, playerW, sprite->getOffset() + spriteW / 2.f * (sprite->getOffset() > 0 ? 1 : -1), spriteW))
+
+				if (sprite->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 				{
 					mSpeed = mMaxSpeed / 5.f;
 					mPosition = increase(playerSegment.point1().world.z, -mPlayerZ, mTrackLength);
