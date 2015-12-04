@@ -153,6 +153,7 @@ void World::draw()
 	for (const auto& object : mBackground)
 		mWindow.draw(*object);
 
+	// render segments
 	for (auto n = 0u; n < drawDistance; ++n)
 	{
 		auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
@@ -184,11 +185,11 @@ void World::draw()
 		maxy = point2.screen.y;
 	}
 
-	// render side road sprites
-	for (auto n = (drawDistance - 1); n > 0u; --n)
+	for (auto n = (drawDistance - 1); n > 0; --n)
 	{
 		const auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
 
+		// render side road sprites
 		const auto& spriteVector = segment.getSprites();
 		for (const auto& sprite : spriteVector)
 		{
