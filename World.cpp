@@ -248,14 +248,14 @@ void World::buildScene()
 
 	auto& hillsTexture = mTextures.get(Textures::Hills);
 	hillsTexture.setRepeated(true);
-	sf::IntRect hillRect(0, 0, 3000, mWindow.getSize().y);
+	sf::IntRect hillRect(0, 0, 4000, mWindow.getSize().y);
 	auto hills = std::make_unique<Backgrounds>(Backgrounds::Hills, hillsTexture, hillRect);
 	hills->setPosition(-hillRect.width / 2.f, 0.f);
 	mBackground.push_back(std::move(hills));
 
 	auto& treesTexture = mTextures.get(Textures::Trees);
 	treesTexture.setRepeated(true);
-	sf::IntRect treeRect(0, 0, 4000, mWindow.getSize().y);
+	sf::IntRect treeRect(0, 0, 6000, mWindow.getSize().y);
 	auto tree = std::make_unique<Backgrounds>(Backgrounds::Trees, treesTexture, treeRect);
 	tree->setPosition(-treeRect.width / 2.f, 0.f);
 	mBackground.push_back(std::move(tree));
