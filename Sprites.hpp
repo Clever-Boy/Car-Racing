@@ -22,7 +22,7 @@ public:
 
 	sf::FloatRect			getBoundingRect() const;
 
-	void					update(float width, float roadWidth, float scaleXY, float destX, float destY, int offsetX, int offsetY, float clip);
+	void					update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip);
 
 
 private:

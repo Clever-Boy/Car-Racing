@@ -22,7 +22,7 @@ sf::FloatRect Sprites::getBoundingRect() const
 	return getTransform().transformRect(mSprite.getGlobalBounds());
 }
 
-void Sprites::update(float width, float roadWidth, float scaleXY, float destX, float destY, int offsetX, int offsetY, float clip)
+void Sprites::update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip)
 {
 	SpritesData spritesData;
 

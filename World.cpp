@@ -199,7 +199,7 @@ void World::draw()
 				spriteScale,
 				spriteX,
 				spriteY,
-				(sprite->getOffset() < 0 ? -1 : 0), -1,
+				(sprite->getOffset() < 0 ? -1.f : 0.f), -1.f,
 				segment.getClip());
 
 			mWindow.draw(*sprite);
