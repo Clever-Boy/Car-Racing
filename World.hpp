@@ -86,7 +86,8 @@ private:
 	float					mPlayerZ;
 	float					mPosition;
 	float					mTrackLength;
+	float					mMaxSpeed;
 	float					mSpeed;
 	int						mSteer;
-	float					mMaxSpeed;
+
 };

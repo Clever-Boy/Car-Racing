@@ -23,9 +23,9 @@ World::World(sf::RenderWindow& window)
 	, mPosition()
 	, mRumbleLength(3u)
 	, mTrackLength()
+	, mMaxSpeed(mSegmentLength / (1 / 60.f))
 	, mSpeed()
 	, mSteer()
-	, mMaxSpeed(mSegmentLength / (1 / 60.f))
 
 {
 	loadTextures();
