@@ -209,7 +209,7 @@ void World::draw()
 		{
 			auto spriteScale = interpolate(segment.point1().screen.scale, segment.point2().screen.scale, car->getPercent());
 			auto interpolateValue = interpolate(segment.point1().screen.x, segment.point2().screen.x, car->getPercent());
-			auto spriteX = interpolateValue + (spriteScale * car->getOffset() * roadWidth * width / 2.f);
+			auto spriteX = interpolateValue + spriteScale * car->getOffset() * roadWidth * width / 2;
 			auto spriteY = interpolate(segment.point1().screen.y, segment.point2().screen.y, car->getPercent());
 			car->update(width, roadWidth, spriteScale, spriteX, spriteY, -0.5f, -1.f, segment.getClip());
 
@@ -224,7 +224,7 @@ void World::draw()
 			auto correctionValue = (mCameraDepth / mPlayerZ * interpolateValue * height / 2);
 			auto clip = playerSegment.point2().world.y - playerSegment.point1().world.y;
 			auto spriteX = width / 2;
-			auto spriteY = (height / 2) - correctionValue;
+			auto spriteY = height / 2 - correctionValue;
 			mPlayer->update(width, roadWidth, spriteScale, spriteX, spriteY, mSteer, clip);
 
 			mWindow.draw(*mPlayer);
