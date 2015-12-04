@@ -125,6 +125,7 @@ void World::update(float dt)
 
 	mPosition = increase(mPosition, dt * mSpeed, mTrackLength);
 	mSteer = (keyLeft ? -1 : keyRight ? 1 : 0);
+
 	// update backgrounds
 	for (const auto& object : mBackground)
 		object->update(dt, playerSegment.getCurve(), mSpeed);
@@ -183,7 +184,7 @@ void World::draw()
 		maxy = point2.screen.y;
 	}
 
-	// render roadside sprites
+	// render side road sprites
 	for (auto n = (drawDistance - 1); n > 0u; --n)
 	{
 		const auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
@@ -194,13 +195,9 @@ void World::draw()
 			auto spriteScale = segment.point1().screen.scale;
 			auto spriteX = segment.point1().screen.x + (spriteScale * sprite->getOffset() * roadWidth * width / 2);
 			auto spriteY = segment.point1().screen.y;
-
-			sprite->update(width, roadWidth,
-				spriteScale,
-				spriteX,
-				spriteY,
-				(sprite->getOffset() < 0 ? -1.f : 0.f), -1.f,
-				segment.getClip());
+			auto offsetX = (sprite->getOffset() < 0 ? -1.f : 0.f);
+			auto offsetY = -1.f;
+			sprite->update(width, roadWidth, spriteScale, spriteX, spriteY, offsetX, offsetY, segment.getClip());
 
 			mWindow.draw(*sprite);
 		}
@@ -210,21 +207,24 @@ void World::draw()
 		for (const auto& car : carsVector)
 		{
 			auto spriteScale = interpolate(segment.point1().screen.scale, segment.point2().screen.scale, car->getPercent());
-			auto spriteX = interpolate(segment.point1().screen.x, segment.point2().screen.x, car->getPercent()) + (spriteScale * car->getOffset() * roadWidth * width / 2.f);
+			auto interpolateValue = interpolate(segment.point1().screen.x, segment.point2().screen.x, car->getPercent());
+			auto spriteX = interpolateValue + (spriteScale * car->getOffset() * roadWidth * width / 2.f);
 			auto spriteY = interpolate(segment.point1().screen.y, segment.point2().screen.y, car->getPercent());
 			car->update(width, roadWidth, spriteScale, spriteX, spriteY, -0.5f, -1.f, segment.getClip());
+
 			mWindow.draw(*car);
 		}
 
 		// player
 		if (segment.getIndex() == playerSegment.getIndex())
 		{
-			mPlayer->update(width, roadWidth,
-				mCameraDepth / mPlayerZ,
-				width / 2,
-				(height / 2) - (mCameraDepth / mPlayerZ * interpolate(playerSegment.point1().camera.y, playerSegment.point2().camera.y, playerPercent) * height / 2),
-				mSteer,
-				playerSegment.point2().world.y - playerSegment.point1().world.y);
+			auto spriteScale = mCameraDepth / mPlayerZ;
+			auto interpolateValue = interpolate(playerSegment.point1().camera.y, playerSegment.point2().camera.y, playerPercent);
+			auto correctionValue = (mCameraDepth / mPlayerZ * interpolateValue * height / 2);
+			auto clip = playerSegment.point2().world.y - playerSegment.point1().world.y;
+			auto spriteX = width / 2;
+			auto spriteY = (height / 2) - correctionValue;
+			mPlayer->update(width, roadWidth, spriteScale, spriteX, spriteY, mSteer, clip);
 
 			mWindow.draw(*mPlayer);
 		}
@@ -309,15 +309,15 @@ void World::buildScene()
 	for (auto n = 250u; n < 1000; n += 5)
 	{
 		addSprite(n, spritesData.Column, 1.1f);
-		addSprite(n + random(0, 5), spritesData.Tree1, -random(1.f, 5.5f));
-		addSprite(n + random(0, 5), spritesData.Tree2, -random(1.f, 5.5f));
+		addSprite(n + random(0, 5), spritesData.Tree1, -random(1.1f, 5.5f));
+		addSprite(n + random(0, 5), spritesData.Tree2, -random(1.1f, 5.5f));
 	}
 
 	std::vector<float> vec{ 1.f, -1.f };
 
 	for (auto n = 200u; n < mSegments.size(); n += 3)
 	{
-		addSprite(n, randomChoice(spritesData.Plants), randomChoice(vec) * random(1.f, 5.5f));
+		addSprite(n, randomChoice(spritesData.Plants), randomChoice(vec) * random(1.1f, 5.5f));
 	}
 
 	for (auto n = 1000u; n < (mSegments.size() - 50); n += 100)
@@ -326,13 +326,13 @@ void World::buildScene()
 		addSprite(n + random(0, 50), randomChoice(spritesData.BillBoads), -side);
 		for (auto i = 0u; i < 20; i++)
 		{
-			addSprite(n + random(0, 50), randomChoice(spritesData.Plants), side * random(1.f, 5.5f));
+			addSprite(n + random(0, 50), randomChoice(spritesData.Plants), side * random(1.1f, 5.5f));
 		}
 	}
 
 	// add Cars
 	auto totalCars = 100u;
-	for (auto n = 0u; n < totalCars; ++n)
+	for (auto n = 0u; n < totalCars; n++)
 	{
 		auto offset = random(-0.8f, 0.8f);
 		auto z = random(0u, mSegments.size()) * mSegmentLength;
@@ -344,7 +344,7 @@ void World::buildScene()
 		segment.addCar(car);
 	}
 
-	// setup start and finish of road
+	// setup start and finish of road marks
 	mSegments[mSegments[static_cast<std::size_t>(std::floor(mPlayerZ / mSegmentLength)) % mSegments.size()]->getIndex() + 2]->setSegmentColors(Colors::Start);
 	mSegments[mSegments[static_cast<std::size_t>(std::floor(mPlayerZ / mSegmentLength)) % mSegments.size()]->getIndex() + 3]->setSegmentColors(Colors::Start);
 
@@ -391,13 +391,13 @@ void World::addRoad(float enter, float hold, float leave, float curve, float y)
 	auto endY = startY + (y * mSegmentLength);
 	auto total = enter + hold + leave;
 
-	for (auto n = 0.f; n < enter; ++n)
+	for (auto n = 0.f; n < enter; n++)
 		addSegment(easeIn(0, curve, n / enter), easeInOut(startY, endY, n / total));
 
-	for (auto n = 0.f; n < hold; ++n)
+	for (auto n = 0.f; n < hold; n++)
 		addSegment(curve, easeInOut(startY, endY, (enter + n) / total));
 
-	for (auto n = 0.f; n < leave; ++n)
+	for (auto n = 0.f; n < leave; n++)
 		addSegment(easeInOut(curve, 0, n / leave), easeInOut(startY, endY, (enter + hold + n) / total));
 }
 
@@ -426,7 +426,7 @@ void World::addCurve(float n, float c, float h)
 
 void World::addDownhillToEnd(float n)
 {
-	auto num = (n == 0) ? 200 : n;
+	auto num = (n == 0) ? 200.f : n;
 	addRoad(num, num, num, -curve.easy, -lastY() / mSegmentLength);
 }
 
