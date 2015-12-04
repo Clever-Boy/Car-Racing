@@ -194,9 +194,9 @@ void World::draw()
 		for (const auto& sprite : spriteVector)
 		{
 			auto spriteScale = segment.point1().screen.scale;
-			auto spriteX = segment.point1().screen.x + (spriteScale * sprite->getOffset() * roadWidth * width / 2);
+			auto spriteX = segment.point1().screen.x + spriteScale * sprite->getOffset() * roadWidth * width / 2;
 			auto spriteY = segment.point1().screen.y;
-			auto offsetX = (sprite->getOffset() < 0 ? -1.f : 0.f);
+			auto offsetX = sprite->getOffset() < 0 ? -1.f : 0.f;
 			auto offsetY = -1.f;
 			sprite->update(width, roadWidth, spriteScale, spriteX, spriteY, offsetX, offsetY, segment.getClip());
 
@@ -221,7 +221,7 @@ void World::draw()
 		{
 			auto spriteScale = mCameraDepth / mPlayerZ;
 			auto interpolateValue = interpolate(playerSegment.point1().camera.y, playerSegment.point2().camera.y, playerPercent);
-			auto correctionValue = (mCameraDepth / mPlayerZ * interpolateValue * height / 2);
+			auto correctionValue = mCameraDepth / mPlayerZ * interpolateValue * height / 2;
 			auto clip = playerSegment.point2().world.y - playerSegment.point1().world.y;
 			auto spriteX = width / 2;
 			auto spriteY = height / 2 - correctionValue;
