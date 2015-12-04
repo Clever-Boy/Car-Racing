@@ -107,7 +107,7 @@ void World::update(float dt)
 
 	// check for collision with cars
 	const auto& carsVector = playerSegment.getCars();
-	for (auto& car : carsVector)
+	for (const auto& car : carsVector)
 	{
 		if (mSpeed <= car->getSpeed())
 			continue;
