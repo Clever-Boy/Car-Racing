@@ -53,8 +53,8 @@ void World::update(float dt)
 	{
 		auto& oldSegment = *mSegments[static_cast<std::size_t>(std::floor(car->getZValue() / mSegmentLength)) % mSegments.size()];
 		car->setOffset(car->getOffset());
-		car->setZValue(utility::increase(car->getZValue(), dt * car->getSpeed(), mTrackLength));
-		car->setPercent(utility::percentRemaining(car->getZValue(), mSegmentLength));
+		car->setZValue(increase(car->getZValue(), dt * car->getSpeed(), mTrackLength));
+		car->setPercent(percentRemaining(car->getZValue(), mSegmentLength));
 		auto& newSegment = *mSegments[static_cast<std::size_t>(std::floor(car->getZValue() / mSegmentLength)) % mSegments.size()];
 
 		if (oldSegment.getIndex() != newSegment.getIndex())
