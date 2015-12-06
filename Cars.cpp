@@ -55,7 +55,7 @@ sf::FloatRect Cars::getBoundingRect() const
 	return getTransform().transformRect(mSprite.getGlobalBounds());
 }
 
-void Cars::update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip)
+void Cars::update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip, float curve)
 {
 	SpritesData spritesData;
 
@@ -70,8 +70,16 @@ void Cars::update(float width, float roadWidth, float scaleXY, float destX, floa
 	if (clipH >= destH) return;
 
 	mIsDrawing = true;
+
+	auto flip = 1;
+
+	if (curve <= 0)	flip = (mOffset <= 0 ? 1 : -1);
+
+	auto destScaleX = flip * destW / mSprite.getLocalBounds().width;
+	auto destScaleY = (destH - clipH) / mSprite.getLocalBounds().height;
+
 	setPosition(destX, destY);
-	setScale(destW / mSprite.getLocalBounds().width, (destH - clipH) / mSprite.getLocalBounds().height);
+	setScale(destScaleX, destScaleY);
 }
 
 void Cars::draw(sf::RenderTarget& target, sf::RenderStates states) const

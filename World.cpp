@@ -211,7 +211,7 @@ void World::draw()
 			auto interpolateValue = interpolate(segment.point1().screen.x, segment.point2().screen.x, car->getPercent());
 			auto spriteX = interpolateValue + spriteScale * car->getOffset() * roadWidth * width / 2;
 			auto spriteY = interpolate(segment.point1().screen.y, segment.point2().screen.y, car->getPercent());
-			car->update(width, roadWidth, spriteScale, spriteX, spriteY, -0.5f, -1.f, segment.getClip());
+			car->update(width, roadWidth, spriteScale, spriteX, spriteY, -0.5f, -1.f, segment.getClip(), segment.getCurve());
 
 			mWindow.draw(*car);
 		}
@@ -332,10 +332,11 @@ void World::buildScene()
 	}
 
 	// add Cars
+	std::vector<float> vecCars{ 0.8f, 0, -0.7f };
 	auto totalCars = 100u;
 	for (auto n = 0u; n < totalCars; n++)
 	{
-		auto offset = random(-0.8f, 0.8f);
+		auto offset = randomChoice(vecCars);
 		auto z = random(0u, mSegments.size()) * mSegmentLength;
 		auto sprite = randomChoice(spritesData.Cars);
 		auto speed = mMaxSpeed / 4.f;
