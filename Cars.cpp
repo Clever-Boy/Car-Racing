@@ -73,7 +73,7 @@ void Cars::update(float width, float roadWidth, float scaleXY, float destX, floa
 
 	auto flip = 1;
 
-	if (curve <= 0)	flip = (mOffset <= 0 ? 1 : -1);
+	if (curve <= 0)	flip = mOffset <= 0 ? 1 : -1;
 
 	auto destScaleX = flip * destW / mSprite.getLocalBounds().width;
 	auto destScaleY = (destH - clipH) / mSprite.getLocalBounds().height;
