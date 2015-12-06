@@ -91,5 +91,4 @@ private:
 	float					mMaxSpeed;
 	float					mSpeed;
 	int						mSteer;
-
 };

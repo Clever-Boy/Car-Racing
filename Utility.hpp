@@ -19,7 +19,6 @@ namespace utility
 {
 	float increase(float start, float increment, float max);
 
-
 	float limit(float value, float min, float max);
 
 	float rumbleWidth(float projectedRoadWidth, std::size_t lanes);
