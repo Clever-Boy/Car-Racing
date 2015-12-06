@@ -2,6 +2,7 @@
 
 
 #include "ResourceIdentifiers.hpp"
+#include "SpritesData.hpp"
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/NonCopyable.hpp>
@@ -31,7 +32,7 @@ public:
 
 	sf::FloatRect			getBoundingRect() const;
 
-	void					update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip, float curve);
+	void					update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip);
 
 
 private:
@@ -40,10 +41,10 @@ private:
 
 private:
 	sf::Sprite				mSprite;
+	SpritesData				mSpritesData;
 	mutable bool			mIsDrawing;
 	float					mOffset;
 	float					mZvalue;
 	float					mSpeed;
 	float					mPercent;
-
 };

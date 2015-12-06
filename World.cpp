@@ -1,5 +1,4 @@
 #include "World.hpp"
-#include "SpritesData.hpp"
 #include "Utility.hpp"
 
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -211,7 +210,7 @@ void World::draw()
 			auto interpolateValue = interpolate(segment.point1().screen.x, segment.point2().screen.x, car->getPercent());
 			auto spriteX = interpolateValue + spriteScale * car->getOffset() * roadWidth * width / 2;
 			auto spriteY = interpolate(segment.point1().screen.y, segment.point2().screen.y, car->getPercent());
-			car->update(width, roadWidth, spriteScale, spriteX, spriteY, -0.5f, -1.f, segment.getClip(), segment.getCurve());
+			car->update(width, roadWidth, spriteScale, spriteX, spriteY, -0.5f, -1.f, segment.getClip());
 
 			mWindow.draw(*car);
 		}
@@ -338,7 +337,7 @@ void World::buildScene()
 	{
 		auto offset = randomChoice(vecCars);
 		auto z = random(0u, mSegments.size()) * mSegmentLength;
-		auto sprite = randomChoice(spritesData.Cars);
+		auto sprite = spritesData.Car01;
 		auto speed = mMaxSpeed / 4.f;
 		auto car = std::make_shared<Cars>(mTextures, sprite, offset, z, speed);
 		auto& segment = *mSegments[static_cast<std::size_t>(std::floor(z / mSegmentLength)) % mSegments.size()];

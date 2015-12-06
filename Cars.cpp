@@ -1,12 +1,12 @@
 #include "Cars.hpp"
 #include "ResourceHolder.hpp"
-#include "SpritesData.hpp"
 
 #include  <SFML/Graphics/RenderTarget.hpp>
 
 
 Cars::Cars(const TextureHolder& textures, const sf::IntRect& rect, float offset, float z, float speed)
 	: mSprite(textures.get(Textures::Sprites), rect)
+	, mSpritesData()
 	, mIsDrawing(false)
 	, mOffset(offset)
 	, mZvalue(z)
@@ -55,12 +55,10 @@ sf::FloatRect Cars::getBoundingRect() const
 	return getTransform().transformRect(mSprite.getGlobalBounds());
 }
 
-void Cars::update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip, float curve)
+void Cars::update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip)
 {
-	SpritesData spritesData;
-
-	auto destW = (mSprite.getLocalBounds().width * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
-	auto destH = (mSprite.getLocalBounds().height * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
+	auto destW = (mSprite.getLocalBounds().width * scaleXY * width / 2) * (mSpritesData.Scale * roadWidth);
+	auto destH = (mSprite.getLocalBounds().height * scaleXY * width / 2) * (mSpritesData.Scale * roadWidth);
 
 	destX += destW * offsetX;
 	destY += destH * offsetY;
@@ -71,9 +69,7 @@ void Cars::update(float width, float roadWidth, float scaleXY, float destX, floa
 
 	mIsDrawing = true;
 
-	auto flip = 1;
-
-	if (curve <= 0)	flip = mOffset <= 0.5f ? 1 : -1;
+	auto flip = mOffset <= 0.5f ? 1 : -1;
 
 	auto destScaleX = flip * destW / mSprite.getLocalBounds().width;
 	auto destScaleY = (destH - clipH) / mSprite.getLocalBounds().height;

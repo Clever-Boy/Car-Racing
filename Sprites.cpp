@@ -1,12 +1,12 @@
 #include "Sprites.hpp"
 #include "ResourceHolder.hpp"
-#include "SpritesData.hpp"
 
 #include  <SFML/Graphics/RenderTarget.hpp>
 
 
 Sprites::Sprites(const TextureHolder& textures, const sf::IntRect& rect, float offset)
 	: mSprite(textures.get(Textures::Sprites), rect)
+	, mSpritesData()
 	, mIsDrawing(false)
 	, mOffset(offset)
 {
@@ -24,10 +24,8 @@ sf::FloatRect Sprites::getBoundingRect() const
 
 void Sprites::update(float width, float roadWidth, float scaleXY, float destX, float destY, float offsetX, float offsetY, float clip)
 {
-	SpritesData spritesData;
-
-	auto destW = (mSprite.getLocalBounds().width * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
-	auto destH = (mSprite.getLocalBounds().height * scaleXY * width / 2) * (spritesData.Scale * roadWidth);
+	auto destW = (mSprite.getLocalBounds().width * scaleXY * width / 2) * (mSpritesData.Scale * roadWidth);
+	auto destH = (mSprite.getLocalBounds().height * scaleXY * width / 2) * (mSpritesData.Scale * roadWidth);
 
 	destX += destW * offsetX;
 	destY += destH * offsetY;

@@ -2,6 +2,7 @@
 
 
 #include "ResourceIdentifiers.hpp"
+#include "SpritesData.hpp"
 
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/NonCopyable.hpp>
@@ -31,6 +32,8 @@ private:
 
 private:
 	sf::Sprite				mSprite;
+	SpritesData				mSpritesData;
 	mutable bool			mIsDrawing;
 	float					mOffset;
+
 };
