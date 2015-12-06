@@ -69,6 +69,7 @@ private:
 	void					addLowRollingHills(float n = 0, float h = 0);
 	void					addBumps();
 	float					lastY();
+	float					updateCarOffset(Cars::Ptr car, const Segment& carSegment, const Segment& playerSegment);
 
 
 private:
@@ -77,6 +78,7 @@ private:
 	SegmentContainer		mSegments;
 	BackgroundContainer		mBackground;
 	std::size_t				mRumbleLength;
+	std::size_t				mDrawDistance;
 	CarsContainer			mCars;
 	Player::Ptr				mPlayer;
 	float					mSegmentLength;

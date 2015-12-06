@@ -22,6 +22,7 @@ World::World(sf::RenderWindow& window)
 	, mPlayerZ((mCameraHeight * mCameraDepth))
 	, mPosition()
 	, mRumbleLength(3u)
+	, mDrawDistance(500u)
 	, mTrackLength()
 	, mMaxSpeed(mSegmentLength / (1 / 60.f))
 	, mSpeed()
@@ -52,7 +53,7 @@ void World::update(float dt)
 	for (const auto& car : mCars)
 	{
 		auto& oldSegment = *mSegments[static_cast<std::size_t>(std::floor(car->getZValue() / mSegmentLength)) % mSegments.size()];
-		car->setOffset(car->getOffset());
+		car->setOffset(car->getOffset() + updateCarOffset(car, oldSegment, playerSegment));
 		car->setZValue(increase(car->getZValue(), dt * car->getSpeed(), mTrackLength));
 		car->setPercent(percentRemaining(car->getZValue(), mSegmentLength));
 		auto& newSegment = *mSegments[static_cast<std::size_t>(std::floor(car->getZValue() / mSegmentLength)) % mSegments.size()];
@@ -136,7 +137,6 @@ void World::draw()
 	auto width = 640.f;
 	auto height = 480.f;
 	auto roadWidth = 2000.f;
-	auto drawDistance = 500u;
 	auto fogDensity = 5.f;
 
 	const auto& baseSegment = *mSegments[static_cast<std::size_t>(std::floor(mPosition / mSegmentLength)) % mSegments.size()];
@@ -154,13 +154,13 @@ void World::draw()
 		mWindow.draw(*object);
 
 	// render segments
-	for (auto n = 0u; n < drawDistance; ++n)
+	for (auto n = 0u; n < mDrawDistance; ++n)
 	{
 		auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
 		segment.setClip(maxy);
 
 		bool looped = segment.getIndex() < baseSegment.getIndex();
-		auto fog = exponentialFog(n / static_cast<float>(drawDistance), fogDensity);
+		auto fog = exponentialFog(n / static_cast<float>(mDrawDistance), fogDensity);
 
 		auto camX = mPlayerX * roadWidth;
 		auto camY = playerY + mCameraHeight;
@@ -185,7 +185,7 @@ void World::draw()
 		maxy = point2.screen.y;
 	}
 
-	for (auto n = (drawDistance - 1); n > 0; --n)
+	for (auto n = (mDrawDistance - 1); n > 0; --n)
 	{
 		const auto& segment = *mSegments[(baseSegment.getIndex() + n) % mSegments.size()];
 
@@ -212,8 +212,9 @@ void World::draw()
 			auto spriteX = interpolateValue + spriteScale * car->getOffset() * roadWidth * width / 2;
 			auto spriteY = interpolate(segment.point1().screen.y, segment.point2().screen.y, car->getPercent());
 			car->update(width, roadWidth, spriteScale, spriteX, spriteY, -0.5f, -1.f, segment.getClip(), segment.getCurve());
-
-			mWindow.draw(*car);
+			
+			if (playerSegment.getIndex() < segment.getIndex()) // don't draw cars just behind us
+				mWindow.draw(*car);
 		}
 
 		// player
@@ -332,14 +333,14 @@ void World::buildScene()
 	}
 
 	// add Cars
-	std::vector<float> vecCars{ 0.8f, 0, -0.7f };
+	std::vector<float> vecCars{ 0.9f, 0.f, -0.7f };
 	auto totalCars = 100u;
 	for (auto n = 0u; n < totalCars; n++)
 	{
 		auto offset = randomChoice(vecCars);
 		auto z = random(0u, mSegments.size()) * mSegmentLength;
 		auto sprite = randomChoice(spritesData.Cars);
-		auto speed = mMaxSpeed / 4.f;
+		auto speed = mMaxSpeed / 4.f + random(0.f, 0.8f) * mMaxSpeed / (sprite == spritesData.Semi ? 4.f : 2.f);
 		auto car = std::make_shared<Cars>(mTextures, sprite, offset, z, speed);
 		auto& segment = *mSegments[static_cast<std::size_t>(std::floor(z / mSegmentLength)) % mSegments.size()];
 		mCars.push_back(car);
@@ -469,4 +470,52 @@ void World::addBumps()
 float World::lastY()
 {
 	return (mSegments.size() == 0) ? 0 : mSegments[mSegments.size() - 1]->point2().world.y;
+}
+
+float World::updateCarOffset(Cars::Ptr car, const Segment& carSegment, const Segment& playerSegment)
+{
+	// optimization, dont bother steering around other cars when 'out of sight' of the player
+	if ((carSegment.getIndex() - playerSegment.getIndex()) > mDrawDistance)
+		return 0.f;
+
+	for (auto i = 1u; i < 20; ++i)
+	{
+		auto dir = 0;
+		const auto& segment = *mSegments[(carSegment.getIndex() + i) % mSegments.size()];
+
+		if (carSegment.getIndex() == playerSegment.getIndex() && car->getSpeed() > mSpeed && car->getBoundingRect().intersects(mPlayer->getBoundingRect()))
+		{
+			if (mPlayerX > 0.5f)
+				dir = -1;
+			else if (mPlayerX < -0.5f)
+				dir = 1;
+			else
+				dir = car->getOffset() > mPlayerX ? 1 : -1;
+			// the closer the cars (smaller i) and the greated the speed ratio, the larger the offset
+			return dir * 1 / i * (car->getSpeed() - mSpeed) / mMaxSpeed;
+		}
+
+		const auto& carVector = segment.getCars();
+		for (const auto& otherCar : carVector)
+		{
+			if (car->getSpeed() > otherCar->getSpeed() && car->getBoundingRect().intersects(otherCar->getBoundingRect()))
+			{
+				if (otherCar->getOffset() > 0.5f)
+					dir = -1;
+				else if (otherCar->getOffset() < -0.5f)
+					dir = 1;
+				else
+					dir = car->getOffset() > otherCar->getOffset() ? 1 : -1;
+				return dir * 1 / i * (car->getSpeed() - otherCar->getSpeed()) / mMaxSpeed;
+			}
+		}
+	}
+
+	// if no cars ahead, but I have somehow ended up off road, then steer back on
+	if (car->getOffset() < -0.9f)
+		return 0.1f;
+	else if (car->getOffset() > 0.9f)
+		return -0.1f;
+	else
+		return 0.f;
 }
