@@ -82,13 +82,13 @@ private:
 	CarsContainer			mCars;
 	Player::Ptr				mPlayer;
 	float					mSegmentLength;
-	float					mPlayerX;
+	//float					mPlayerX;
 	float					mCameraDepth;
 	float					mCameraHeight;
-	float					mPlayerZ;
+	//float					mPlayerZ;
 	float					mPosition;
 	float					mTrackLength;
 	float					mMaxSpeed;
-	float					mSpeed;
+	//float					mSpeed;
 	int						mSteer;
 };

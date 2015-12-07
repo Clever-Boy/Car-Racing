@@ -17,7 +17,21 @@ public:
 
 
 public:
-	explicit				Player(const TextureHolder& textures, const sf::IntRect& rect);
+	explicit				Player(const TextureHolder& textures, const sf::IntRect& rect, float z);
+
+	void					setOffset(float offset);
+	float					getOffset() const;
+
+	void					setZValue(float z);
+	float					getZValue() const;
+
+	float					getSpeed() const;
+	void					setSpeed(float speed);
+
+	void					moveLeft(float amount);
+	void					moveRight(float amount);
+	void					adaptMoving(float amount);
+	void					accelerate(float amount);
 
 	sf::FloatRect			getBoundingRect() const;
 
@@ -30,4 +44,7 @@ private:
 
 private:
 	sf::Sprite				mSprite;
+	float					mOffset;
+	float					mZvalue;
+	float					mSpeed;
 };

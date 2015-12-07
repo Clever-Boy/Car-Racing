@@ -15,16 +15,16 @@ World::World(sf::RenderWindow& window)
 	, mCars()
 	, mPlayer(nullptr)
 	, mSegmentLength(200.f)
-	, mPlayerX(0.f)
+	//, mPlayerX(0.f)
 	, mCameraDepth(1 / std::tan((100.f / 2.f) * static_cast<float>(M_PI / 180.f)))
 	, mCameraHeight(1000.f)
-	, mPlayerZ((mCameraHeight * mCameraDepth))
+	//, mPlayerZ((mCameraHeight * mCameraDepth))
 	, mPosition()
 	, mRumbleLength(3u)
 	, mDrawDistance(500u)
 	, mTrackLength()
 	, mMaxSpeed(mSegmentLength / (1 / 60.f))
-	, mSpeed()
+	//, mSpeed()
 	, mSteer()
 
 {
@@ -44,8 +44,8 @@ void World::update(float dt)
 	bool keyRight = false;
 
 	const auto& baseSegment = *mSegments[static_cast<std::size_t>(std::floor(mPosition / mSegmentLength)) % mSegments.size()];
-	const auto& playerSegment = *mSegments[static_cast<std::size_t>(std::floor((mPosition + mPlayerZ) / mSegmentLength)) % mSegments.size()];
-	auto speedPercent = mSpeed / mMaxSpeed;
+	const auto& playerSegment = *mSegments[static_cast<std::size_t>(std::floor((mPosition + mPlayer->getZValue()) / mSegmentLength)) % mSegments.size()];
+	auto speedPercent = mPlayer->getSpeed() / mMaxSpeed;
 	auto dx = dt * speedPercent;
 
 	// update cars
@@ -68,29 +68,29 @@ void World::update(float dt)
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 	{
 		keyLeft = true;
-		mPlayerX -= dx;
+		mPlayer->moveLeft(dx);
 	}
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 	{
 		keyRight = true;
-		mPlayerX += dx;
+		mPlayer->moveRight(dx);
 	}
 
-	mPlayerX -= (dx * speedPercent * playerSegment.getCurve() * centrifugal);
+	mPlayer->adaptMoving((dx * speedPercent * playerSegment.getCurve() * centrifugal));
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
-		mSpeed += accel * dt;
+		mPlayer->accelerate(accel * dt);
 	else
-		mSpeed += decel * dt;
+		mPlayer->accelerate(decel * dt);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
-		mSpeed += breaking * dt;
+		mPlayer->accelerate(breaking * dt);
 
-	if ((mPlayerX < -1.f) || (mPlayerX > 1.f))
+	if ((mPlayer->getOffset() < -1.f) || (mPlayer->getOffset() > 1.f))
 	{
-		if (mSpeed > offRoadLimit)
-			mSpeed += offRoadDecel * dt;
+		if (mPlayer->getSpeed() > offRoadLimit)
+			mPlayer->accelerate(offRoadDecel * dt);
 
 		// check for collision with side road objects
 		const auto& spriteVector = playerSegment.getSprites();
@@ -98,8 +98,8 @@ void World::update(float dt)
 		{
 			if (sprite->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 			{
-				mSpeed = accel;
-				mPosition = increase(playerSegment.point1().world.z, -mPlayerZ, mTrackLength);
+				mPlayer->setSpeed(accel);
+				mPosition = increase(playerSegment.point1().world.z, -mPlayer->getZValue(), mTrackLength);
 				break;
 			}
 		}
@@ -109,26 +109,26 @@ void World::update(float dt)
 	const auto& carsVector = playerSegment.getCars();
 	for (const auto& car : carsVector)
 	{
-		if (mSpeed <= car->getSpeed())
+		if (mPlayer->getSpeed() <= car->getSpeed())
 			continue;
 
 		if (car->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 		{
-			mSpeed = car->getSpeed() * (car->getSpeed() / mSpeed);
-			mPosition = increase(car->getZValue(), -mPlayerZ, mTrackLength);
+			mPlayer->setSpeed(car->getSpeed() * (car->getSpeed() / mPlayer->getSpeed()));
+			mPosition = increase(car->getZValue(), -mPlayer->getZValue(), mTrackLength);
 			break;
 		}
 	}
 
-	mPlayerX = limit(mPlayerX, -2.f, 2.f);
-	mSpeed = limit(mSpeed, 0, mMaxSpeed);
+	mPlayer->setOffset(limit(mPlayer->getOffset(), -2.f, 2.f));
+	mPlayer->setSpeed(limit(mPlayer->getSpeed(), 0, mMaxSpeed));
 
-	mPosition = increase(mPosition, dt * mSpeed, mTrackLength);
+	mPosition = increase(mPosition, dt * mPlayer->getSpeed(), mTrackLength);
 	mSteer = (keyLeft ? -1 : keyRight ? 1 : 0);
 
 	// update backgrounds
 	for (const auto& object : mBackground)
-		object->update(dt, playerSegment.getCurve(), mSpeed);
+		object->update(dt, playerSegment.getCurve(), mPlayer->getSpeed());
 }
 
 void World::draw()
@@ -141,8 +141,8 @@ void World::draw()
 	const auto& baseSegment = *mSegments[static_cast<std::size_t>(std::floor(mPosition / mSegmentLength)) % mSegments.size()];
 	auto basePercent = percentRemaining(mPosition, mSegmentLength);
 
-	const auto& playerSegment = *mSegments[static_cast<std::size_t>(std::floor((mPosition + mPlayerZ) / mSegmentLength)) % mSegments.size()];
-	auto playerPercent = percentRemaining(mPosition + mPlayerZ, mSegmentLength);
+	const auto& playerSegment = *mSegments[static_cast<std::size_t>(std::floor((mPosition + mPlayer->getZValue()) / mSegmentLength)) % mSegments.size()];
+	auto playerPercent = percentRemaining(mPosition + mPlayer->getZValue(), mSegmentLength);
 	auto playerY = interpolate(playerSegment.point1().world.y, playerSegment.point2().world.y, playerPercent);
 
 	auto x = 0.f;
@@ -161,7 +161,7 @@ void World::draw()
 		bool looped = segment.getIndex() < baseSegment.getIndex();
 		auto fog = exponentialFog(n / static_cast<float>(mDrawDistance), fogDensity);
 
-		auto camX = mPlayerX * roadWidth;
+		auto camX = mPlayer->getOffset() * roadWidth;
 		auto camY = playerY + mCameraHeight;
 		auto camZ = mPosition - (looped ? mTrackLength : 0.f);
 
@@ -218,9 +218,9 @@ void World::draw()
 		// player
 		if (segment.getIndex() == playerSegment.getIndex())
 		{
-			auto spriteScale = mCameraDepth / mPlayerZ;
+			auto spriteScale = mCameraDepth / mPlayer->getZValue();
 			auto interpolateValue = interpolate(playerSegment.point1().camera.y, playerSegment.point2().camera.y, playerPercent);
-			auto correctionValue = mCameraDepth / mPlayerZ * interpolateValue * height / 2;
+			auto correctionValue = mCameraDepth / mPlayer->getZValue() * interpolateValue * height / 2;
 			auto clip = playerSegment.point2().world.y - playerSegment.point1().world.y;
 			auto spriteX = width / 2;
 			auto spriteY = height / 2 - correctionValue;
@@ -262,7 +262,7 @@ void World::buildScene()
 
 	// add player
 	SpritesData	spritesData;
-	mPlayer = std::make_unique<Player>(mTextures, spritesData.PlayerStraight);
+	mPlayer = std::make_unique<Player>(mTextures, spritesData.PlayerStraight, mCameraHeight * mCameraDepth);
 
 	// build road
 	addStraight(length.shorty);
@@ -346,8 +346,8 @@ void World::buildScene()
 	}
 
 	// setup start and finish of road marks
-	mSegments[mSegments[static_cast<std::size_t>(std::floor(mPlayerZ / mSegmentLength)) % mSegments.size()]->getIndex() + 2]->setSegmentColors(Colors::Start);
-	mSegments[mSegments[static_cast<std::size_t>(std::floor(mPlayerZ / mSegmentLength)) % mSegments.size()]->getIndex() + 3]->setSegmentColors(Colors::Start);
+	mSegments[mSegments[static_cast<std::size_t>(std::floor(mPlayer->getZValue() / mSegmentLength)) % mSegments.size()]->getIndex() + 2]->setSegmentColors(Colors::Start);
+	mSegments[mSegments[static_cast<std::size_t>(std::floor(mPlayer->getZValue() / mSegmentLength)) % mSegments.size()]->getIndex() + 3]->setSegmentColors(Colors::Start);
 
 	for (auto n = 0u; n < mRumbleLength; n++)
 	{
@@ -483,18 +483,18 @@ float World::updateCarOffset(Cars::Ptr car, const Segment& carSegment, const Seg
 		const auto& segment = *mSegments[(carSegment.getIndex() + i) % mSegments.size()];
 
 		if (segment.getIndex() == playerSegment.getIndex()
-			&& car->getSpeed() > mSpeed
+			&& car->getSpeed() > mPlayer->getSpeed()
 			&& car->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 		{
-			if (mPlayerX > 0.5f)
+			if (mPlayer->getOffset() > 0.5f)
 				dir = -1;
-			else if (mPlayerX < -0.5f)
+			else if (mPlayer->getOffset() < -0.5f)
 				dir = 1;
 			else
-				dir = car->getOffset() > mPlayerX ? 1 : -1;
+				dir = car->getOffset() > mPlayer->getOffset() ? 1 : -1;
 
 			// the closer the cars (smaller i) and the greated the speed ratio, the larger the offset
-			return dir * 1 / static_cast<float>(i) * (car->getSpeed() - mSpeed) / mMaxSpeed;
+			return dir * 1 / static_cast<float>(i) * (car->getSpeed() - mPlayer->getSpeed()) / mMaxSpeed;
 		}
 
 		const auto& carVector = segment.getCars();

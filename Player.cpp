@@ -5,9 +5,62 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 
 
-Player::Player(const TextureHolder& textures, const sf::IntRect& rect)
+Player::Player(const TextureHolder& textures, const sf::IntRect& rect, float z)
 	: mSprite(textures.get(Textures::Sprites), rect)
+	, mOffset()
+	, mZvalue(z)
+	, mSpeed()
 {
+}
+
+void Player::setOffset(float offset)
+{
+	mOffset = offset;
+}
+
+float Player::getOffset() const
+{
+	return mOffset;
+}
+
+void Player::setZValue(float z)
+{
+	mZvalue = z;
+}
+
+float Player::getZValue()const
+{
+	return mZvalue;
+}
+
+void Player::setSpeed(float speed)
+{
+	mSpeed = speed;
+}
+
+float Player::getSpeed() const
+{
+	return mSpeed;
+}
+
+void Player::moveLeft(float amount)
+{
+	mOffset -= amount;
+}
+
+void Player::moveRight(float amount)
+{
+	mOffset += amount;
+}
+
+void Player::adaptMoving(float amount)
+{
+	mOffset -= amount;
+}
+
+void Player::accelerate(float amount)
+{
+	mSpeed += amount;
 }
 
 sf::FloatRect Player::getBoundingRect() const
