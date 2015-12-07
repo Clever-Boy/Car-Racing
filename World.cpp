@@ -331,14 +331,14 @@ void World::buildScene()
 	}
 
 	// add Cars
-	std::vector<float> vecCars{ 0.9f, 0.f, -0.7f };
+	std::vector<float> vecCars{ 0.9f, 0.f, -0.6f };
 	auto totalCars = 100u;
 	for (auto n = 0u; n < totalCars; n++)
 	{
 		auto offset = randomChoice(vecCars);
 		auto z = random(0u, mSegments.size()) * mSegmentLength;
-		auto sprite = spritesData.Car01;
-		auto speed = mMaxSpeed / 4.f + random(0.f, 0.8f) * mMaxSpeed / (sprite == spritesData.Semi ? 4.f : 2.f);
+		auto sprite = spritesData.Car01; //randomChoice(spritesData.Cars);
+		auto speed = mMaxSpeed / 4.f + random(0.f, 0.7f) * mMaxSpeed / (sprite == spritesData.Semi ? 4.f : 2.f);
 		auto car = std::make_shared<Cars>(mTextures, sprite, offset, z, speed);
 		auto& segment = *mSegments[static_cast<std::size_t>(std::floor(z / mSegmentLength)) % mSegments.size()];
 		mCars.push_back(car);
@@ -476,22 +476,23 @@ float World::updateCarOffset(Cars::Ptr car, const Segment& carSegment, const Seg
 	if (std::abs(static_cast<float>(carSegment.getIndex()) - static_cast<float>(playerSegment.getIndex())) > mDrawDistance)
 		return 0.f;
 
-	auto dir = 0.f;
+	auto dir = 0;
+
 	for (auto i = 1u; i < 20; ++i)
 	{
 		const auto& segment = *mSegments[(carSegment.getIndex() + i) % mSegments.size()];
 
-		if ((segment.getIndex() == playerSegment.getIndex())
+		if (segment.getIndex() == playerSegment.getIndex()
 			&& car->getSpeed() > mSpeed
 			&& car->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 		{
-
 			if (mPlayerX > 0.5f)
-				dir = -1.f;
+				dir = -1;
 			else if (mPlayerX < -0.5f)
-				dir = 1.f;
+				dir = 1;
 			else
-				dir = car->getOffset() > mPlayerX ? 1.f : -1.f;
+				dir = car->getOffset() > mPlayerX ? 1 : -1;
+
 			// the closer the cars (smaller i) and the greated the speed ratio, the larger the offset
 			return dir * 1 / static_cast<float>(i) * (car->getSpeed() - mSpeed) / mMaxSpeed;
 		}
@@ -502,11 +503,12 @@ float World::updateCarOffset(Cars::Ptr car, const Segment& carSegment, const Seg
 			if (car->getSpeed() > otherCar->getSpeed() && car->getBoundingRect().intersects(otherCar->getBoundingRect()))
 			{
 				if (otherCar->getOffset() > 0.5f)
-					dir = -1.f;
+					dir = -1;
 				else if (otherCar->getOffset() < -0.5f)
-					dir = 1.f;
+					dir = 1;
 				else
-					dir = car->getOffset() > otherCar->getOffset() ? 1.f : -1.f;
+					dir = car->getOffset() > otherCar->getOffset() ? 1 : -1;
+
 				return dir * 1 / static_cast<float>(i) * (car->getSpeed() - otherCar->getSpeed()) / mMaxSpeed;
 			}
 		}
