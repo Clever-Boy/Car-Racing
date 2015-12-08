@@ -481,6 +481,7 @@ float World::updateCarOffset(Cars::Ptr car, const Segment& carSegment, const Seg
 
 		if (segment.getIndex() == playerSegment.getIndex()
 			&& car->getSpeed() > mPlayer->getSpeed()
+			&& car->getZValue() < mPlayer->getZValue()
 			&& car->getBoundingRect().intersects(mPlayer->getBoundingRect()))
 		{
 			if (mPlayer->getOffset() > 0.5f)
