@@ -54,11 +54,11 @@ void World::update(float dt)
 		car->setPercent(percentRemaining(car->getZValue(), mSegmentLength));
 		auto& newSegment = *mSegments[static_cast<std::size_t>(std::floor(car->getZValue() / mSegmentLength)) % mSegments.size()];
 
-		if (oldSegment.getIndex() != newSegment.getIndex())
-		{
-			oldSegment.removeCar();
-			newSegment.addCar(car);
-		}
+		if (oldSegment.getIndex() == newSegment.getIndex())
+			continue;
+
+		oldSegment.removeCar();
+		newSegment.addCar(car);
 	}
 
 	// update player
@@ -93,12 +93,12 @@ void World::update(float dt)
 		const auto& spriteVector = playerSegment.getSprites();
 		for (const auto& sprite : spriteVector)
 		{
-			if (sprite->getBoundingRect().intersects(mPlayer->getBoundingRect()))
-			{
-				mPlayer->setSpeed(accel);
-				mPosition = increase(playerSegment.point1().world.z, -mPlayer->getZValue(), mTrackLength);
-				break;
-			}
+			if (!sprite->getBoundingRect().intersects(mPlayer->getBoundingRect()))
+				continue;
+
+			mPlayer->setSpeed(accel);
+			mPosition = increase(playerSegment.point1().world.z, -mPlayer->getZValue(), mTrackLength);
+			break;
 		}
 	}
 
@@ -109,12 +109,12 @@ void World::update(float dt)
 		if (mPlayer->getSpeed() <= car->getSpeed())
 			continue;
 
-		if (car->getBoundingRect().intersects(mPlayer->getBoundingRect()))
-		{
-			mPlayer->setSpeed(car->getSpeed() * (car->getSpeed() / mPlayer->getSpeed()));
-			mPosition = increase(car->getZValue(), -mPlayer->getZValue(), mTrackLength);
-			break;
-		}
+		if (!car->getBoundingRect().intersects(mPlayer->getBoundingRect()))
+			continue;
+
+		mPlayer->setSpeed(car->getSpeed() * (car->getSpeed() / mPlayer->getSpeed()));
+		mPosition = increase(car->getZValue(), -mPlayer->getZValue(), mTrackLength);
+		break;
 	}
 
 	mPlayer->setOffset(limit(mPlayer->getOffset(), -2.f, 2.f));
@@ -213,18 +213,18 @@ void World::draw()
 		}
 
 		// player
-		if (segment.getIndex() == playerSegment.getIndex())
-		{
-			auto spriteScale = mCameraDepth / mPlayer->getZValue();
-			auto interpolateValue = interpolate(playerSegment.point1().camera.y, playerSegment.point2().camera.y, playerPercent);
-			auto correctionValue = mCameraDepth / mPlayer->getZValue() * interpolateValue * height / 2;
-			auto clip = playerSegment.point2().world.y - playerSegment.point1().world.y;
-			auto spriteX = width / 2;
-			auto spriteY = height / 2 - correctionValue;
-			mPlayer->update(width, roadWidth, spriteScale, spriteX, spriteY, mSteer, clip);
+		if (segment.getIndex() != playerSegment.getIndex())
+			continue;
 
-			mWindow.draw(*mPlayer);
-		}
+		auto spriteScale = mCameraDepth / mPlayer->getZValue();
+		auto interpolateValue = interpolate(playerSegment.point1().camera.y, playerSegment.point2().camera.y, playerPercent);
+		auto correctionValue = mCameraDepth / mPlayer->getZValue() * interpolateValue * height / 2;
+		auto clip = playerSegment.point2().world.y - playerSegment.point1().world.y;
+		auto spriteX = width / 2;
+		auto spriteY = height / 2 - correctionValue;
+		mPlayer->update(width, roadWidth, spriteScale, spriteX, spriteY, mSteer, clip);
+
+		mWindow.draw(*mPlayer);
 	}
 }
 
