@@ -10,6 +10,8 @@
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/System/NonCopyable.hpp>
 
+#include <list>
+
 
 class Segment final : public sf::Drawable, public sf::Transformable, private sf::NonCopyable
 {
@@ -19,7 +21,7 @@ public:
 
 private:
 	using SpritesContainer = std::vector<Sprites::Ptr>;
-	using CarsContainer = std::vector<Cars::Ptr>;
+	using CarsContainer = std::list<Cars::Ptr>;
 
 
 public:

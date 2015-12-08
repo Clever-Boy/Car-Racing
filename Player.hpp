@@ -25,8 +25,8 @@ public:
 	void					setZValue(float z);
 	float					getZValue() const;
 
-	float					getSpeed() const;
 	void					setSpeed(float speed);
+	float					getSpeed() const;
 
 	void					moveLeft(float amount);
 	void					moveRight(float amount);

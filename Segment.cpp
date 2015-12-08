@@ -75,8 +75,9 @@ const Segment::CarsContainer& Segment::getCars() const
 }
 
 void Segment::removeCar()
-{ 
-	mCars.pop_back();
+{
+	if(!mCars.empty())
+		mCars.pop_front();
 }
 
 void Segment::addCar(Cars::Ptr car)
