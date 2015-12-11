@@ -56,9 +56,9 @@ void World::update(float dt)
 
 		if (oldSegment.getIndex() == newSegment.getIndex())
 			continue;
-
-		oldSegment.removeCar();
+		
 		newSegment.addCar(car);
+		oldSegment.removeCar();
 	}
 
 	// update player
@@ -497,17 +497,20 @@ float World::updateCarOffset(Cars::Ptr car, const Segment& carSegment, const Seg
 		const auto& carVector = segment.getCars();
 		for (const auto& otherCar : carVector)
 		{
-			if (car->getSpeed() > otherCar->getSpeed() && car->getBoundingRect().intersects(otherCar->getBoundingRect()))
-			{
-				if (otherCar->getOffset() > 0.5f)
-					dir = -1;
-				else if (otherCar->getOffset() < -0.5f)
-					dir = 1;
-				else
-					dir = car->getOffset() > otherCar->getOffset() ? 1 : -1;
+			if (car->getSpeed() <= otherCar->getSpeed())
+				continue;
 
-				return dir * 1 / static_cast<float>(i) * (car->getSpeed() - otherCar->getSpeed()) / mMaxSpeed;
-			}
+			if (!car->getBoundingRect().intersects(otherCar->getBoundingRect()))
+				continue;
+
+			if (otherCar->getOffset() > 0.5f)
+				dir = -1;
+			else if (otherCar->getOffset() < -0.5f)
+				dir = 1;
+			else
+				dir = car->getOffset() > otherCar->getOffset() ? 1 : -1;
+
+			return dir * 1 / static_cast<float>(i) * (car->getSpeed() - otherCar->getSpeed()) / mMaxSpeed;
 		}
 	}
 
