@@ -43,6 +43,9 @@ namespace utility
 	template <typename U>
 	static auto dist() -> typename std::enable_if_t<std::is_floating_point<U>::value, std::uniform_real_distribution<U>> {}
 
+	template<class T = std::mt19937, std::size_t N = T::state_size>
+	auto ProperlySeededRandomEngine() -> typename std::enable_if_t<!!N, T>;
+
 	template<typename U>
 	auto random(U min, U max);
 
