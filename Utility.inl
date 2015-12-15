@@ -1,3 +1,7 @@
+#include <array>
+#include <algorithm>
+#include <functional>
+
 template<class T, std::size_t N>
 auto utility::ProperlySeededRandomEngine() -> typename std::enable_if_t<!!N, T>
 {
@@ -9,12 +13,12 @@ auto utility::ProperlySeededRandomEngine() -> typename std::enable_if_t<!!N, T>
 	return seeded_engine;
 }
 
-template<typename U>
-auto utility::random(U min, U max)
+template<typename T>
+T utility::random(T min, T max)
 {
 	static auto RandomEngine = ProperlySeededRandomEngine();
 
-	decltype(dist<U>()) uniformDistribution(min, max);
+	decltype(dist<T>()) uniformDistribution(min, max);
 
 	return uniformDistribution(RandomEngine);
 }
