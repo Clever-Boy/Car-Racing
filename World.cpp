@@ -297,45 +297,52 @@ void World::buildScene()
 	addSprite(mSegments.size() - 25, spritesData.BillBoard07, -1.2f);
 	addSprite(mSegments.size() - 25, spritesData.BillBoard06, 1.2f);
 
+	static auto& dist1 = std::uniform_real_distribution<float>(0.6f, 0.9f);
+	static auto& dist2 = std::uniform_real_distribution<float>(1.5f, 5.5f);
 	for (auto n = 10u; n < 240; n += 4 + n / 100u)
 	{
-		addSprite(n, spritesData.PalmTree, random(0.6f, 0.9f));
-		addSprite(n, spritesData.PalmTree, random(1.5f, 5.5f));
+		addSprite(n, spritesData.PalmTree, random(dist1));
+		addSprite(n, spritesData.PalmTree, random(dist2));
 	}
 
+	static auto& dist3 = std::uniform_int_distribution<unsigned>(0, 5);
+	static auto& dist4 = std::uniform_real_distribution<float>(1.1f, 5.5f);
 	for (auto n = 250u; n < 1000; n += 5)
 	{
 		addSprite(n, spritesData.Column, 1.1f);
-		addSprite(n + random(0, 5), spritesData.Tree1, -random(1.1f, 5.5f));
-		addSprite(n + random(0, 5), spritesData.Tree2, -random(1.1f, 5.5f));
+		addSprite(n + random(dist3), spritesData.Tree1, -random(dist4));
+		addSprite(n + random(dist3), spritesData.Tree2, -random(dist4));
 	}
 
 	std::vector<float> vec{ 1.f, -1.f };
 
 	for (auto n = 200u; n < mSegments.size(); n += 3)
 	{
-		addSprite(n, randomChoice(spritesData.Plants), randomChoice(vec) * random(1.1f, 5.5f));
+		addSprite(n, randomChoice(spritesData.Plants), randomChoice(vec) * random(dist4));
 	}
 
+	static auto& dist5 = std::uniform_int_distribution<unsigned>(0, 50);
 	for (auto n = 1000u; n < (mSegments.size() - 50); n += 100)
 	{
 		auto side = randomChoice(vec);
-		addSprite(n + random(0, 50), randomChoice(spritesData.BillBoads), -side);
+		addSprite(n + random(dist5), randomChoice(spritesData.BillBoads), -side);
 		for (auto i = 0u; i < 20; i++)
 		{
-			addSprite(n + random(0, 50), randomChoice(spritesData.Plants), side * random(1.1f, 5.5f));
+			addSprite(n + random(dist5), randomChoice(spritesData.Plants), side * random(dist4));
 		}
 	}
 
 	// add Cars
 	std::vector<float> vecCars{ 0.9f, 0.f, -0.6f };
 	auto totalCars = 100u;
+	static auto& dist6 = std::uniform_int_distribution<unsigned>(0u, mSegments.size());
+	static auto& dist7 = std::uniform_real_distribution<float>(0.f, 0.7f);
 	for (auto n = 0u; n < totalCars; n++)
 	{
 		auto offset = randomChoice(vecCars);
-		auto z = random(0u, mSegments.size()) * mSegmentLength;
+		auto z = random(dist6) * mSegmentLength;
 		auto sprite = spritesData.Car01; //randomChoice(spritesData.Cars);
-		auto speed = mMaxSpeed / 4.f + random(0.f, 0.7f) * mMaxSpeed / (sprite == spritesData.Semi ? 4.f : 2.f);
+		auto speed = mMaxSpeed / 4.f + random(dist7) * mMaxSpeed / (sprite == spritesData.Semi ? 4.f : 2.f);
 		auto car = std::make_shared<Cars>(mTextures, sprite, offset, z, speed);
 		auto& segment = *mSegments[static_cast<std::size_t>(std::floor(z / mSegmentLength)) % mSegments.size()];
 		mCars.push_back(car);

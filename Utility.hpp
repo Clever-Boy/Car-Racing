@@ -37,17 +37,11 @@ namespace utility
 
 	float percentRemaining(float n, float total);
 
-	template <typename T>
-	auto dist() -> typename std::enable_if_t<std::is_integral<T>::value, std::uniform_int_distribution<T>> {}
-
-	template <typename T>
-	auto dist() -> typename std::enable_if_t<std::is_floating_point<T>::value, std::uniform_real_distribution<T>> {}
-
 	template<class T = std::mt19937, std::size_t N = T::state_size>
-	auto ProperlySeededRandomEngine() -> typename std::enable_if_t<!!N, T>;
+	auto randomEngine() -> std::enable_if_t<!!N, T>;
 
-	template<typename T>
-	T random(T min, T max);
+	template <class Dist>
+	typename Dist::result_type random(Dist& dist);
 
 	template<typename C>
 	auto randomChoice(const C& constainer);
